@@ -21,6 +21,10 @@ import {
   Printer,
   FileCheck
 } from "lucide-react";
+import { PayBillsModal } from "@/components/modals/PayBillsModal";
+import { ReduceUtilizationModal } from "@/components/modals/ReduceUtilizationModal";
+import { MaintainAccountsModal } from "@/components/modals/MaintainAccountsModal";
+import { DiversifyPortfolioModal } from "@/components/modals/DiversifyPortfolioModal";
 
 /*
   This file extends the original UserDashboard by adding a full loan application flow.
@@ -411,6 +415,7 @@ const UserDashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedLoan, setSelectedLoan] = useState(null);
   const [applications, setApplications] = useState([]);
+  const [activeModal, setActiveModal] = useState(null); // Tracks which improvement modal is open
 
   useEffect(() => {
     document.title = "User Dashboard | CreditScore Pro";
@@ -613,13 +618,17 @@ const UserDashboard = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <Shield className="h-8 w-8 text-primary" />
-              <span className="text-2xl font-bold text-gradient-primary">CreditScore Pro</span>
+              <span className="text-2xl font-bold text-gradient-primary">
+                CreditScore Pro
+              </span>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-muted-foreground">Welcome, {userEmail}</span>
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <span className="text-sm text-muted-foreground">
+                Welcome, {userEmail}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={handleLogout}
                 className="hover:bg-red-500 hover:text-white hover:border-red-500 transition-all duration-200"
               >
@@ -635,50 +644,87 @@ const UserDashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card className="shadow-card border-l-4 border-l-blue-500 bg-white hover:bg-blue-50 transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-blue-800">Credit Score</CardTitle>
+              <CardTitle className="text-sm font-medium text-blue-800">
+                Credit Score
+              </CardTitle>
               <TrendingUp className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className={`text-2xl font-bold ${getScoreColor(creditScore)}`}>{creditScore}</div>
+              <div
+                className={`text-2xl font-bold ${getScoreColor(creditScore)}`}
+              >
+                {creditScore}
+              </div>
               <p className="text-xs text-blue-600">Excellent (750-850)</p>
               <div className="mt-2">
-                <Progress value={(creditScore / 850) * 100} className="h-2 bg-blue-100" />
+                <Progress
+                  value={(creditScore / 850) * 100}
+                  className="h-2 bg-blue-100"
+                />
               </div>
             </CardContent>
           </Card>
 
           <Card className="shadow-card border-l-4 border-l-blue-600 bg-white hover:bg-blue-50 transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-blue-800">Risk Assessment</CardTitle>
+              <CardTitle className="text-sm font-medium text-blue-800">
+                Risk Assessment
+              </CardTitle>
               <Shield className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-700">{riskLevel}</div>
+              <div className="text-2xl font-bold text-blue-700">
+                {riskLevel}
+              </div>
               <div className="mt-2">{getRiskBadge(riskLevel)}</div>
             </CardContent>
           </Card>
 
           <Card className="shadow-card border-l-4 border-l-blue-600 bg-white hover:bg-blue-50 transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-blue-800">Loan Applications</CardTitle>
+              <CardTitle className="text-sm font-medium text-blue-800">
+                Loan Applications
+              </CardTitle>
               <FileText className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
               <div className="space-y-1">
-                <div className="flex justify-between"><span className="text-sm text-blue-600">Pending</span><span className="text-sm font-medium text-blue-800">{applications.filter(a => a.status === 'Pending').length || pendingLoans}</span></div>
-                <div className="flex justify-between"><span className="text-sm text-blue-600">Approved</span><span className="text-sm font-medium text-success">{applications.filter(a => a.status === 'Approved').length || approvedLoans}</span></div>
-                <div className="flex justify-between"><span className="text-sm text-blue-600">Rejected</span><span className="text-sm font-medium text-destructive">{applications.filter(a => a.status === 'Rejected').length || rejectedLoans}</span></div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-blue-600">Pending</span>
+                  <span className="text-sm font-medium text-blue-800">
+                    {applications.filter((a) => a.status === "Pending")
+                      .length || pendingLoans}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-blue-600">Approved</span>
+                  <span className="text-sm font-medium text-success">
+                    {applications.filter((a) => a.status === "Approved")
+                      .length || approvedLoans}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-blue-600">Rejected</span>
+                  <span className="text-sm font-medium text-destructive">
+                    {applications.filter((a) => a.status === "Rejected")
+                      .length || rejectedLoans}
+                  </span>
+                </div>
               </div>
             </CardContent>
           </Card>
 
           <Card className="shadow-card border-l-4 border-l-blue-600 bg-white hover:bg-blue-50 transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-blue-800">Last Updated</CardTitle>
+              <CardTitle className="text-sm font-medium text-blue-800">
+                Last Updated
+              </CardTitle>
               <Calendar className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-700">{lastUpdated}</div>
+              <div className="text-2xl font-bold text-blue-700">
+                {lastUpdated}
+              </div>
               <p className="text-xs text-blue-600">Next update in 25 days</p>
             </CardContent>
           </Card>
@@ -687,41 +733,118 @@ const UserDashboard = () => {
         {/* Main Content */}
         <Tabs defaultValue="loans" className="space-y-6">
           <TabsList className="grid w-full grid-cols-5 rounded-full bg-white p-1 border border-blue-200">
-            <TabsTrigger value="loans" className="rounded-full data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200">Recommended Loans</TabsTrigger>
-            <TabsTrigger value="status" className="rounded-full data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200">Loan Status</TabsTrigger>
-            <TabsTrigger value="improve" className="rounded-full data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200">Improve Score</TabsTrigger>
-            <TabsTrigger value="calculator" className="rounded-full data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200">Credit Calculator</TabsTrigger>
-            <TabsTrigger value="faq" className="rounded-full data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200">FAQ</TabsTrigger>
+            <TabsTrigger
+              value="loans"
+              className="rounded-full data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200"
+            >
+              Recommended Loans
+            </TabsTrigger>
+            <TabsTrigger
+              value="status"
+              className="rounded-full data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200"
+            >
+              Loan Status
+            </TabsTrigger>
+            <TabsTrigger
+              value="improve"
+              className="rounded-full data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200"
+            >
+              Improve Score
+            </TabsTrigger>
+            <TabsTrigger
+              value="calculator"
+              className="rounded-full data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200"
+            >
+              Credit Calculator
+            </TabsTrigger>
+            <TabsTrigger
+              value="faq"
+              className="rounded-full data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200"
+            >
+              FAQ
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="loans">
             <Card>
               <CardHeader>
                 <CardTitle>Recommended Loans</CardTitle>
-                <CardDescription>Based on your credit score of {creditScore}, here are the best loan options for you</CardDescription>
+                <CardDescription>
+                  Based on your credit score of {creditScore}, here are the best
+                  loan options for you
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {recommendedLoans.map((loan, index) => (
-                    <Card key={index} className="border-l-4 border-l-blue-500 bg-white hover:bg-blue-50 transition-all duration-300 shadow-md hover:shadow-lg">
+                    <Card
+                      key={index}
+                      className="border-l-4 border-l-blue-500 bg-white hover:bg-blue-50 transition-all duration-300 shadow-md hover:shadow-lg"
+                    >
                       <CardHeader className="pb-3">
                         <div className="flex justify-between items-start">
                           <div>
-                            <CardTitle className="text-lg text-blue-800">{loan.bank}</CardTitle>
-                            <CardDescription className="text-blue-600">{loan.type}</CardDescription>
+                            <CardTitle className="text-lg text-blue-800">
+                              {loan.bank}
+                            </CardTitle>
+                            <CardDescription className="text-blue-600">
+                              {loan.type}
+                            </CardDescription>
                           </div>
-                          <Badge variant={loan.eligibility === "High" ? "default" : "secondary"} className="bg-blue-100 text-blue-800 border-blue-200">{loan.eligibility}</Badge>
+                          <Badge
+                            variant={
+                              loan.eligibility === "High"
+                                ? "default"
+                                : "secondary"
+                            }
+                            className="bg-blue-100 text-blue-800 border-blue-200"
+                          >
+                            {loan.eligibility}
+                          </Badge>
                         </div>
                       </CardHeader>
                       <CardContent className="pt-0">
                         <div className="space-y-2">
-                          <div className="flex justify-between"><span className="text-sm text-blue-600">Amount</span><span className="font-medium text-blue-800">{loan.amount}</span></div>
-                          <div className="flex justify-between"><span className="text-sm text-blue-600">Interest Rate</span><span className="font-medium text-blue-800">{loan.interest}</span></div>
-                          <div className="flex justify-between"><span className="text-sm text-blue-600">Tenure</span><span className="font-medium text-blue-800">{loan.tenure}</span></div>
+                          <div className="flex justify-between">
+                            <span className="text-sm text-blue-600">
+                              Amount
+                            </span>
+                            <span className="font-medium text-blue-800">
+                              {loan.amount}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm text-blue-600">
+                              Interest Rate
+                            </span>
+                            <span className="font-medium text-blue-800">
+                              {loan.interest}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm text-blue-600">
+                              Tenure
+                            </span>
+                            <span className="font-medium text-blue-800">
+                              {loan.tenure}
+                            </span>
+                          </div>
                         </div>
                         <div className="mt-4 grid grid-cols-2 gap-2">
-                          <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200" size="sm" onClick={() => openApplicationModal(loan)}>Apply Now</Button>
-                          <Button className="w-full border border-blue-200" size="sm" onClick={() => alert('More details coming soon')}>Details</Button>
+                          <Button
+                            className="w-full bg-blue-500 hover:bg-blue-600 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200"
+                            size="sm"
+                            onClick={() => openApplicationModal(loan)}
+                          >
+                            Apply Now
+                          </Button>
+                          <Button
+                            className="w-full border border-blue-200"
+                            size="sm"
+                            onClick={() => alert("More details coming soon")}
+                          >
+                            Details
+                          </Button>
                         </div>
                       </CardContent>
                     </Card>
@@ -735,40 +858,82 @@ const UserDashboard = () => {
             <Card>
               <CardHeader>
                 <CardTitle>Loan Status Tracker</CardTitle>
-                <CardDescription>Track the progress of your loan applications</CardDescription>
+                <CardDescription>
+                  Track the progress of your loan applications
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {applications.length === 0 && (
-                    <Card className="p-4 border border-blue-100 text-blue-700">You have not submitted any loan applications yet.</Card>
+                    <Card className="p-4 border border-blue-100 text-blue-700">
+                      You have not submitted any loan applications yet.
+                    </Card>
                   )}
 
                   {applications.map((application) => (
-                    <Card key={application.id} className="border-l-4 border-l-blue-500 bg-white hover:bg-blue-50 transition-all duration-300 shadow-md hover:shadow-lg">
+                    <Card
+                      key={application.id}
+                      className="border-l-4 border-l-blue-500 bg-white hover:bg-blue-50 transition-all duration-300 shadow-md hover:shadow-lg"
+                    >
                       <CardContent className="p-4">
                         <div className="flex justify-between items-start">
                           <div className="space-y-2">
                             <div className="flex items-center space-x-2">
-                              <h3 className="font-semibold text-blue-800">{application.bank}</h3>
-                              <Badge variant="outline" className="border-blue-300 text-blue-700 bg-blue-50">{application.id}</Badge>
+                              <h3 className="font-semibold text-blue-800">
+                                {application.bank}
+                              </h3>
+                              <Badge
+                                variant="outline"
+                                className="border-blue-300 text-blue-700 bg-blue-50"
+                              >
+                                {application.id}
+                              </Badge>
                             </div>
-                            <p className="text-sm text-blue-600">{application.type}</p>
-                            <p className="font-medium text-blue-800">{application.amount}</p>
+                            <p className="text-sm text-blue-600">
+                              {application.type}
+                            </p>
+                            <p className="font-medium text-blue-800">
+                              {application.amount}
+                            </p>
                           </div>
                           <div className="text-right space-y-1">
                             <div className="flex items-center space-x-1">
                               {getStatusIcon(application.status)}
-                              <span className="text-sm font-medium text-blue-800">{application.status}</span>
+                              <span className="text-sm font-medium text-blue-800">
+                                {application.status}
+                              </span>
                             </div>
-                            <p className="text-xs text-blue-600">Applied: {application.appliedDate}</p>
-                            {application.status === "Pending" && application.expectedDecision && (<p className="text-xs text-blue-600">Decision by: {application.expectedDecision}</p>)}
-                            {application.status === "Approved" && application.approvedDate && (<p className="text-xs text-success">Approved: {application.approvedDate}</p>)}
+                            <p className="text-xs text-blue-600">
+                              Applied: {application.appliedDate}
+                            </p>
+                            {application.status === "Pending" &&
+                              application.expectedDecision && (
+                                <p className="text-xs text-blue-600">
+                                  Decision by: {application.expectedDecision}
+                                </p>
+                              )}
+                            {application.status === "Approved" &&
+                              application.approvedDate && (
+                                <p className="text-xs text-success">
+                                  Approved: {application.approvedDate}
+                                </p>
+                              )}
 
                             <div className="flex items-center justify-end space-x-2 mt-3">
-                              <Button size="sm" variant="outline" onClick={() => handlePrintReceipt(application)}>
-                                <Printer className="h-4 w-4 mr-1" /> Print Receipt
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handlePrintReceipt(application)}
+                              >
+                                <Printer className="h-4 w-4 mr-1" /> Print
+                                Receipt
                               </Button>
-                              <Button size="sm" onClick={() => alert('View details - coming soon')}>
+                              <Button
+                                size="sm"
+                                onClick={() =>
+                                  alert("View details - coming soon")
+                                }
+                              >
                                 <FileCheck className="h-4 w-4 mr-1" /> View
                               </Button>
                             </div>
@@ -786,23 +951,61 @@ const UserDashboard = () => {
             <Card>
               <CardHeader>
                 <CardTitle>Recommended Actions to Improve Score</CardTitle>
-                <CardDescription>Follow these recommendations to boost your credit score</CardDescription>
+                <CardDescription>
+                  Follow these recommendations to boost your credit score
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {improvementActions.map((action, index) => (
-                    <Card key={index} className="border-l-4 border-l-blue-500 bg-white hover:bg-blue-50 transition-all duration-300 shadow-md hover:shadow-lg">
+                    <Card
+                      key={index}
+                      className="border-l-4 border-l-blue-500 bg-white hover:bg-blue-50 transition-all duration-300 shadow-md hover:shadow-lg"
+                    >
                       <CardContent className="p-4">
                         <div className="flex justify-between items-start">
                           <div className="space-y-2 flex-1">
-                            <h3 className="font-semibold text-blue-800">{action.action}</h3>
+                            <h3 className="font-semibold text-blue-800">
+                              {action.action}
+                            </h3>
                             <div className="flex items-center space-x-4">
-                              <Badge variant={action.priority === "High" ? "default" : action.priority === "Medium" ? "secondary" : "outline"} className="bg-blue-100 text-blue-800 border-blue-200">{action.priority} Priority</Badge>
-                              <span className="text-sm text-success font-medium">{action.impact}</span>
-                              <span className="text-sm text-blue-600">in {action.timeframe}</span>
+                              <Badge
+                                variant={
+                                  action.priority === "High"
+                                    ? "default"
+                                    : action.priority === "Medium"
+                                    ? "secondary"
+                                    : "outline"
+                                }
+                                className="bg-blue-100 text-blue-800 border-blue-200"
+                              >
+                                {action.priority} Priority
+                              </Badge>
+                              <span className="text-sm text-success font-medium">
+                                {action.impact}
+                              </span>
+                              <span className="text-sm text-blue-600">
+                                in {action.timeframe}
+                              </span>
                             </div>
                           </div>
-                          <Button variant="outline" size="sm" className="border-blue-300 text-blue-700 hover:bg-blue-50 hover:border-blue-400">Learn More</Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-blue-300 text-blue-700 hover:bg-blue-50 hover:border-blue-400"
+                            onClick={() => {
+                              // Map each action to its corresponding modal
+                              const modalMap = [
+                                "payBills",
+                                "reduceUtilization",
+                                "maintainAccounts",
+                                "diversifyPortfolio",
+                              ];
+                              setActiveModal(modalMap[index]);
+                            }}
+                          >
+                            Learn More
+                          </Button>
                         </div>
                       </CardContent>
                     </Card>
@@ -810,13 +1013,34 @@ const UserDashboard = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Render all modals (add this at the bottom of your UserDashboard component) */}
+            <PayBillsModal
+              isOpen={activeModal === "payBills"}
+              onClose={() => setActiveModal(null)}
+            />
+            <ReduceUtilizationModal
+              isOpen={activeModal === "reduceUtilization"}
+              onClose={() => setActiveModal(null)}
+            />
+            <MaintainAccountsModal
+              isOpen={activeModal === "maintainAccounts"}
+              onClose={() => setActiveModal(null)}
+            />
+            <DiversifyPortfolioModal
+              isOpen={activeModal === "diversifyPortfolio"}
+              onClose={() => setActiveModal(null)}
+            />
           </TabsContent>
 
           <TabsContent value="calculator">
             <Card>
               <CardHeader>
                 <CardTitle>Credit Calculator</CardTitle>
-                <CardDescription>Calculate estimated loan approval amounts based on your credit score and income</CardDescription>
+                <CardDescription>
+                  Calculate estimated loan approval amounts based on your credit
+                  score and income
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <CreditCalculator />
@@ -828,19 +1052,28 @@ const UserDashboard = () => {
             <Card>
               <CardHeader>
                 <CardTitle>Frequently Asked Questions</CardTitle>
-                <CardDescription>Common questions about credit scores and payment history</CardDescription>
+                <CardDescription>
+                  Common questions about credit scores and payment history
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {faqs.map((faq, index) => (
-                    <Card key={index} className="bg-white hover:bg-blue-50 transition-all duration-300 shadow-md hover:shadow-lg border border-blue-200">
+                    <Card
+                      key={index}
+                      className="bg-white hover:bg-blue-50 transition-all duration-300 shadow-md hover:shadow-lg border border-blue-200"
+                    >
                       <CardContent className="p-4">
                         <div className="space-y-2">
                           <div className="flex items-start space-x-2">
                             <HelpCircle className="h-5 w-5 text-blue-600 mt-0.5" />
-                            <h3 className="font-semibold text-blue-800">{faq.question}</h3>
+                            <h3 className="font-semibold text-blue-800">
+                              {faq.question}
+                            </h3>
                           </div>
-                          <p className="text-sm text-blue-600 pl-7">{faq.answer}</p>
+                          <p className="text-sm text-blue-600 pl-7">
+                            {faq.answer}
+                          </p>
                         </div>
                       </CardContent>
                     </Card>
@@ -860,6 +1093,28 @@ const UserDashboard = () => {
         onSubmitApplication={handleNewApplication}
         userEmail={userEmail}
       />
+
+      {/* Improvement Modals - ADD THIS BLOCK */}
+      {activeModal && (
+        <>
+          <PayBillsModal
+            isOpen={activeModal === "payBills"}
+            onClose={() => setActiveModal(null)}
+          />
+          <ReduceUtilizationModal
+            isOpen={activeModal === "reduceUtilization"}
+            onClose={() => setActiveModal(null)}
+          />
+          <MaintainAccountsModal
+            isOpen={activeModal === "maintainAccounts"}
+            onClose={() => setActiveModal(null)}
+          />
+          <DiversifyPortfolioModal
+            isOpen={activeModal === "diversifyPortfolio"}
+            onClose={() => setActiveModal(null)}
+          />
+        </>
+      )}
     </div>
   );
 };
