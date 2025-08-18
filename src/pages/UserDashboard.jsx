@@ -19,7 +19,9 @@ import {
   XCircle,
   Clock,
   Printer,
-  FileCheck
+  FileCheck,
+  Bell, 
+  BellOff
 } from "lucide-react";
 import { PayBillsModal } from "@/components/modals/PayBillsModal";
 import { ReduceUtilizationModal } from "@/components/modals/ReduceUtilizationModal";
@@ -416,7 +418,49 @@ const UserDashboard = () => {
   const [selectedLoan, setSelectedLoan] = useState(null);
   const [applications, setApplications] = useState([]);
   const [activeModal, setActiveModal] = useState(null); // Tracks which improvement modal is open
-
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState([
+    {
+      id: 1,
+      title: "Loan Application Submitted",
+      message: "Your application for HDFC Personal Loan (₹5,00,000) has been submitted successfully.",
+      date: "2024-08-10 14:30",
+      read: false,
+      type: "application"
+    },
+    {
+      id: 2,
+      title: "Credit Score Update",
+      message: "Your credit score has increased by 15 points to 742. Keep it up!",
+      date: "2024-08-08 09:15",
+      read: false,
+      type: "score"
+    },
+    {
+      id: 3,
+      title: "Payment Due Reminder",
+      message: "Your HDFC Credit Card payment of ₹8,500 is due in 3 days (Aug 13).",
+      date: "2024-08-10 08:45",
+      read: false,
+      type: "payment"
+    },
+    {
+      id: 4,
+      title: "Loan Application Approved",
+      message: "Congratulations! Your SBI Home Loan application has been approved.",
+      date: "2024-08-05 16:20",
+      read: true,
+      type: "approval"
+    },
+    {
+      id: 5,
+      title: "New Loan Offer",
+      message: "You're pre-approved for ICICI Personal Loan at 10.25% interest. Limited time offer!",
+      date: "2024-08-09 11:30",
+      read: false,
+      type: "offer"
+    }
+   ]);
   useEffect(() => {
     document.title = "User Dashboard | CreditScore Pro";
     // load saved applications from localStorage
@@ -435,6 +479,19 @@ const UserDashboard = () => {
     localStorage.removeItem("isLoggedIn");
     navigate("/signin");
   };
+
+    // Notification functions
+  const markAsRead = (id) => {
+    setNotifications(nots => 
+      nots.map(n => n.id === id ? {...n, read: true} : n)
+    );
+  };
+
+  const markAllAsRead = () => {
+    setNotifications(nots => nots.map(n => ({...n, read: true})));
+  };
+
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   // Mock data (same as original)
   const creditScore = 742;
@@ -623,6 +680,84 @@ const UserDashboard = () => {
               </span>
             </div>
             <div className="flex items-center space-x-4">
+              {/* Notification Button */}
+              <div className="relative">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="relative hover:bg-blue-50"
+                  onClick={() => setNotificationsOpen(!notificationsOpen)}
+                >
+                  {unreadCount > 0 ? (
+                    <>
+                      <Bell className="h-5 w-5 text-blue-600" />
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                        {unreadCount}
+                      </span>
+                    </>
+                  ) : (
+                    <BellOff className="h-5 w-5 text-blue-600" />
+                  )}
+                </Button>
+                
+                {/* Notification Dropdown */}
+                {notificationsOpen && (
+                  <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg overflow-hidden z-50 border border-gray-200">
+                    <div className="p-3 border-b bg-blue-50 flex justify-between items-center">
+                      <h3 className="font-medium text-blue-800">Notifications</h3>
+                      <Button 
+                        variant="link" 
+                        size="sm" 
+                        className="text-blue-600 h-6"
+                        onClick={markAllAsRead}
+                      >
+                        Mark all as read
+                      </Button>
+                    </div>
+                    <div className="divide-y divide-gray-100 max-h-96 overflow-y-auto">
+                      {notifications.length === 0 ? (
+                        <div className="p-4 text-center text-sm text-gray-500">
+                          No notifications
+                        </div>
+                      ) : (
+                        notifications.map((notification) => (
+                          <div 
+                            key={notification.id} 
+                            className={`p-3 hover:bg-blue-50 cursor-pointer ${!notification.read ? 'bg-blue-50' : ''}`}
+                            onClick={() => markAsRead(notification.id)}
+                          >
+                            <div className="flex justify-between">
+                              <h4 className={`text-sm font-medium ${!notification.read ? 'text-blue-800' : 'text-gray-700'}`}>
+                                {notification.title}
+                              </h4>
+                              {!notification.read && (
+                                <span className="h-2 w-2 rounded-full bg-blue-500"></span>
+                              )}
+                            </div>
+                            <p className="text-xs text-gray-600 mt-1">
+                              {notification.message}
+                            </p>
+                            <p className="text-xs text-gray-400 mt-1">
+                              {notification.date}
+                            </p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                    <div className="p-2 border-t bg-gray-50 text-center">
+                      <Button 
+                        variant="link" 
+                        size="sm" 
+                        className="text-blue-600"
+                        onClick={() => setNotificationsOpen(false)}
+                      >
+                        View All Notifications
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
               <span className="text-sm text-muted-foreground">
                 Welcome, {userEmail}
               </span>
