@@ -567,11 +567,9 @@ const LoanApplicationModal = ({
                 });
               }}
             >
-              Reset Form
+              
             </Button>
-            <Button size="sm" onClick={handlePreview}>
-              Preview
-            </Button>
+           
             <Button size="sm" className="bg-blue-600" onClick={handleSubmit}>
               Submit Application
             </Button>
