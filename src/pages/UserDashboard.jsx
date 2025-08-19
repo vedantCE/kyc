@@ -143,66 +143,89 @@ const LoanApplicationModal = ({
     employerName: "",
     designation: "",
     annualIncome: "",
-    requestedAmount: selectedLoan ? selectedLoan.amount.replace(/[^0-9]/g, "") : "",
-    tenureYears: selectedLoan ? selectedLoan.tenure.replace(/[^0-9]/g, "") : "",
-    interestRate: selectedLoan ? selectedLoan.interest.replace(/[^0-9.]/g, "") : "",
+    requestedAmount: "",
+    tenureYears: "",
+    interestRate: "",
     purpose: "",
     consent: false,
   };
 
-  const [form, setForm] = useState(initialForm);
-  const [mode, setMode] = useState("manual"); // manual | autofill
+  const [form, setForm] = useState(() => {
+  // Get profile from localStorage or use mock data
+  const profile = JSON.parse(localStorage.getItem("userProfile") || "{}");
+  const mock = {
+    applicantName: "Vedant Bhatt",
+    email: userEmail || "vedant@example.com",
+    phone: "9876543210",
+    dob: "1998-01-01",
+    pan: "ABCDE1234F",
+    aadhaar: "999900001111",
+    address: "123, CSPIT Road, Charusat, Gujarat",
+    employmentType: "Salaried",
+    employerName: "Charusat Technologies",
+    designation: "Student / Intern",
+    annualIncome: "480000",
+    purpose: "Loan for personal use",
+    consent: true
+  };
+
+  // Get loan amount, tenure, and interest from selected loan
+  const loanAmount = selectedLoan ? selectedLoan.amount.replace(/[^0-9]/g, "") : "500000";
+  const loanTenure = selectedLoan ? selectedLoan.tenure.replace(/[^0-9]/g, "") : "5";
+  const loanInterest = selectedLoan ? selectedLoan.interest.replace(/[^0-9.]/g, "") : "10.5";
+
+  return {
+    ...initialForm,
+    ...mock,
+    ...profile,
+    requestedAmount: loanAmount,
+    tenureYears: loanTenure,
+    interestRate: loanInterest,
+  };
+});
+  const [mode, setMode] = useState("autofill"); // Default to autofill
+
   const [previewOpen, setPreviewOpen] = useState(false);
   const [errors, setErrors] = useState({});
 
+  // useEffect(() => {
+  //   // When the modal opens or selectedLoan changes, reset form defaults
+  //   setForm((f) => ({
+  //     ...initialForm,
+  //     requestedAmount: initialForm.requestedAmount,
+  //     tenureYears: initialForm.tenureYears,
+  //     interestRate: initialForm.interestRate,
+  //   }));
+  //   setErrors({});
+  //   setPreviewOpen(false);
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [isOpen, selectedLoan]);
+  
   useEffect(() => {
-    // When the modal opens or selectedLoan changes, reset form defaults
-    setForm((f) => ({ ...initialForm, requestedAmount: initialForm.requestedAmount, tenureYears: initialForm.tenureYears, interestRate: initialForm.interestRate }));
-    setErrors({});
-    setPreviewOpen(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, selectedLoan]);
-
+    if (selectedLoan && isOpen) {
+      // Update only the loan-specific fields when selectedLoan changes
+      setForm((prev) => ({
+        ...prev,
+        requestedAmount: selectedLoan.amount.replace(/[^0-9]/g, ""),
+        tenureYears: selectedLoan.tenure.replace(/[^0-9]/g, ""),
+        interestRate: selectedLoan.interest.replace(/[^0-9.]/g, ""),
+      }));
+    }
+  }, [selectedLoan, isOpen]);
+  
   const validate = () => {
     const e = {};
     if (!form.applicantName) e.applicantName = "Required";
     if (!form.email) e.email = "Required";
-    if (!form.phone || form.phone.toString().length < 10) e.phone = "Enter valid phone";
-    if (!form.requestedAmount || Number(form.requestedAmount) <= 0) e.requestedAmount = "Enter amount";
-    if (!form.annualIncome || Number(form.annualIncome) <= 0) e.annualIncome = "Enter annual income";
+    if (!form.phone || form.phone.toString().length < 10)
+      e.phone = "Enter valid phone";
+    if (!form.requestedAmount || Number(form.requestedAmount) <= 0)
+      e.requestedAmount = "Enter amount";
+    if (!form.annualIncome || Number(form.annualIncome) <= 0)
+      e.annualIncome = "Enter annual income";
     if (!form.consent) e.consent = "You must agree to proceed";
     setErrors(e);
     return Object.keys(e).length === 0;
-  };
-
-  const handleAutofill = () => {
-    // Autofill from localStorage or mock profile
-    const profile = JSON.parse(localStorage.getItem("userProfile") || "{}");
-    // Mock fallback
-    const mock = {
-      applicantName: "Vedant Bhatt",
-      email: userEmail || "vedant@example.com",
-      phone: "9876543210",
-      dob: "1998-01-01",
-      pan: "ABCDE1234F",
-      aadhaar: "999900001111",
-      address: "123, CSPIT Road, Charusat, Gujarat",
-      employmentType: "Salaried",
-      employerName: "Charusat Technologies",
-      designation: "Student / Intern",
-      annualIncome: "480000",
-    };
-
-    const auto = {
-      ...mock,
-      ...profile,
-      requestedAmount: selectedLoan ? selectedLoan.amount.replace(/[^0-9]/g, "") : mock.requestedAmount,
-      tenureYears: selectedLoan ? selectedLoan.tenure.replace(/[^0-9]/g, "") : "5",
-      interestRate: selectedLoan ? selectedLoan.interest.replace(/[^0-9.]/g, "") : "10.5",
-    };
-
-    setForm((f) => ({ ...f, ...auto }));
-    setMode("autofill");
   };
 
   const handleChange = (k, v) => {
@@ -240,63 +263,148 @@ const LoanApplicationModal = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div className="w-full max-w-3xl bg-white rounded-lg shadow-lg overflow-auto max-h-[90vh]">
         <div className="p-4 border-b flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Apply for {selectedLoan ? `${selectedLoan.bank} - ${selectedLoan.type}` : "Loan"}</h3>
+          <h3 className="text-lg font-semibold">
+            Apply for{" "}
+            {selectedLoan
+              ? `${selectedLoan.bank} - ${selectedLoan.type}`
+              : "Loan"}
+          </h3>
           <div className="flex items-center space-x-2">
-            <Button size="sm" variant="ghost" onClick={() => { setPreviewOpen(false); onClose(); }}>Close</Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                setPreviewOpen(false);
+                onClose();
+              }}
+            >
+              Close
+            </Button>
           </div>
         </div>
-
-        <div className="p-4 space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-muted-foreground">Choose how you'd like to fill the form</div>
-            <div className="space-x-2">
-              <Button size="sm" variant={mode === "manual" ? "default" : "outline"} onClick={() => setMode("manual")}>Manual</Button>
-              <Button size="sm" variant={mode === "autofill" ? "default" : "outline"} onClick={handleAutofill}>Autofill</Button>
-            </div>
+        <div className="px-4 pt-2">
+          <div className="text-sm bg-blue-50 text-blue-700 p-2 rounded-md">
+            <strong>Note:</strong> Your information has been prefilled
+            automatically. Please review and edit as needed.
           </div>
+        </div>
+        <div className="p-4 space-y-4">
+          {/* <div className="flex items-center justify-between">
+            <div className="text-sm text-muted-foreground">
+              Choose how you'd like to fill the form
+            </div>
+            <div className="space-x-2">
+              <Button
+                size="sm"
+                variant={mode === "manual" ? "default" : "outline"}
+                onClick={() => setMode("manual")}
+              >
+                Manual
+              </Button>
+              <Button
+                size="sm"
+                variant={mode === "autofill" ? "default" : "outline"}
+                onClick={handleAutofill}
+              >
+                Autofill
+              </Button>
+            </div>
+          </div> */}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="space-y-2">
-              <label className="text-xs font-medium text-blue-800">Applicant Name</label>
-              <Input value={form.applicantName} onChange={(e) => handleChange("applicantName", e.target.value)} placeholder="Full name" />
-              {errors.applicantName && <p className="text-xs text-destructive">{errors.applicantName}</p>}
+              <label className="text-xs font-medium text-blue-800">
+                Applicant Name
+              </label>
+              <Input
+                value={form.applicantName}
+                onChange={(e) => handleChange("applicantName", e.target.value)}
+                placeholder="Full name"
+              />
+              {errors.applicantName && (
+                <p className="text-xs text-destructive">
+                  {errors.applicantName}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
               <label className="text-xs font-medium text-blue-800">Email</label>
-              <Input value={form.email} onChange={(e) => handleChange("email", e.target.value)} placeholder="Email" />
-              {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
+              <Input
+                value={form.email}
+                onChange={(e) => handleChange("email", e.target.value)}
+                placeholder="Email"
+              />
+              {errors.email && (
+                <p className="text-xs text-destructive">{errors.email}</p>
+              )}
             </div>
 
             <div className="space-y-2">
               <label className="text-xs font-medium text-blue-800">Phone</label>
-              <Input value={form.phone} onChange={(e) => handleChange("phone", e.target.value)} placeholder="10 digit mobile" />
-              {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
+              <Input
+                value={form.phone}
+                onChange={(e) => handleChange("phone", e.target.value)}
+                placeholder="10 digit mobile"
+              />
+              {errors.phone && (
+                <p className="text-xs text-destructive">{errors.phone}</p>
+              )}
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-medium text-blue-800">Date of Birth</label>
-              <Input type="date" value={form.dob} onChange={(e) => handleChange("dob", e.target.value)} />
+              <label className="text-xs font-medium text-blue-800">
+                Date of Birth
+              </label>
+              <Input
+                type="date"
+                value={form.dob}
+                onChange={(e) => handleChange("dob", e.target.value)}
+              />
             </div>
 
             <div className="space-y-2">
               <label className="text-xs font-medium text-blue-800">PAN</label>
-              <Input value={form.pan} onChange={(e) => handleChange("pan", e.target.value.toUpperCase())} placeholder="ABCDE1234F" />
+              <Input
+                value={form.pan}
+                onChange={(e) =>
+                  handleChange("pan", e.target.value.toUpperCase())
+                }
+                placeholder="ABCDE1234F"
+              />
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-medium text-blue-800">Aadhaar</label>
-              <Input value={form.aadhaar} onChange={(e) => handleChange("aadhaar", e.target.value)} placeholder="XXXX-XXXX-XXXX" />
+              <label className="text-xs font-medium text-blue-800">
+                Aadhaar
+              </label>
+              <Input
+                value={form.aadhaar}
+                onChange={(e) => handleChange("aadhaar", e.target.value)}
+                placeholder="XXXX-XXXX-XXXX"
+              />
             </div>
 
             <div className="col-span-1 md:col-span-2 space-y-2">
-              <label className="text-xs font-medium text-blue-800">Address</label>
-              <Input value={form.address} onChange={(e) => handleChange("address", e.target.value)} placeholder="Residential address" />
+              <label className="text-xs font-medium text-blue-800">
+                Address
+              </label>
+              <Input
+                value={form.address}
+                onChange={(e) => handleChange("address", e.target.value)}
+                placeholder="Residential address"
+              />
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-medium text-blue-800">Employment Type</label>
-              <select value={form.employmentType} onChange={(e) => handleChange("employmentType", e.target.value)} className="w-full rounded border p-2">
+              <label className="text-xs font-medium text-blue-800">
+                Employment Type
+              </label>
+              <select
+                value={form.employmentType}
+                onChange={(e) => handleChange("employmentType", e.target.value)}
+                className="w-full rounded border p-2"
+              >
                 <option>Salaried</option>
                 <option>Self-Employed</option>
                 <option>Student</option>
@@ -306,53 +414,167 @@ const LoanApplicationModal = ({
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-medium text-blue-800">Employer / Business Name</label>
-              <Input value={form.employerName} onChange={(e) => handleChange("employerName", e.target.value)} placeholder="Employer" />
+              <label className="text-xs font-medium text-blue-800">
+                Employer / Business Name
+              </label>
+              <Input
+                value={form.employerName}
+                onChange={(e) => handleChange("employerName", e.target.value)}
+                placeholder="Employer"
+              />
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-medium text-blue-800">Designation</label>
-              <Input value={form.designation} onChange={(e) => handleChange("designation", e.target.value)} placeholder="Designation" />
+              <label className="text-xs font-medium text-blue-800">
+                Designation
+              </label>
+              <Input
+                value={form.designation}
+                onChange={(e) => handleChange("designation", e.target.value)}
+                placeholder="Designation"
+              />
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-medium text-blue-800">Annual Income (in ₹)</label>
-              <Input value={form.annualIncome} onChange={(e) => handleChange("annualIncome", e.target.value.replace(/,/g, ""))} placeholder="480000" />
-              {errors.annualIncome && <p className="text-xs text-destructive">{errors.annualIncome}</p>}
+              <label className="text-xs font-medium text-blue-800">
+                Annual Income (in ₹)
+              </label>
+              <Input
+                value={form.annualIncome}
+                onChange={(e) =>
+                  handleChange("annualIncome", e.target.value.replace(/,/g, ""))
+                }
+                placeholder="480000"
+              />
+              {errors.annualIncome && (
+                <p className="text-xs text-destructive">
+                  {errors.annualIncome}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-medium text-blue-800">Requested Amount (in ₹)</label>
-              <Input value={form.requestedAmount} onChange={(e) => handleChange("requestedAmount", e.target.value.replace(/,/g, ""))} placeholder="300000" />
-              {errors.requestedAmount && <p className="text-xs text-destructive">{errors.requestedAmount}</p>}
+              <label className="text-xs font-medium text-blue-800">
+                Requested Amount (in ₹)
+              </label>
+              <Input
+                value={form.requestedAmount}
+                onChange={(e) =>
+                  handleChange(
+                    "requestedAmount",
+                    e.target.value.replace(/,/g, "")
+                  )
+                }
+                placeholder="300000"
+              />
+              {errors.requestedAmount && (
+                <p className="text-xs text-destructive">
+                  {errors.requestedAmount}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-medium text-blue-800">Tenure (years)</label>
-              <Input value={form.tenureYears} onChange={(e) => handleChange("tenureYears", e.target.value)} placeholder="5" />
+              <label className="text-xs font-medium text-blue-800">
+                Tenure (years)
+              </label>
+              <Input
+                value={form.tenureYears}
+                onChange={(e) => handleChange("tenureYears", e.target.value)}
+                placeholder="5"
+              />
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-medium text-blue-800">Interest Rate (%)</label>
-              <Input value={form.interestRate} onChange={(e) => handleChange("interestRate", e.target.value)} placeholder="10.5" />
+              <label className="text-xs font-medium text-blue-800">
+                Interest Rate (%)
+              </label>
+              <Input
+                value={form.interestRate}
+                onChange={(e) => handleChange("interestRate", e.target.value)}
+                placeholder="10.5"
+              />
             </div>
 
             <div className="col-span-1 md:col-span-2 space-y-2">
-              <label className="text-xs font-medium text-blue-800">Purpose</label>
-              <Input value={form.purpose} onChange={(e) => handleChange("purpose", e.target.value)} placeholder="Loan purpose (eg: Home renovation)" />
+              <label className="text-xs font-medium text-blue-800">
+                Purpose
+              </label>
+              <Input
+                value={form.purpose}
+                onChange={(e) => handleChange("purpose", e.target.value)}
+                placeholder="Loan purpose (eg: Home renovation)"
+              />
             </div>
 
             <div className="col-span-1 md:col-span-2 flex items-center space-x-2">
-              <input type="checkbox" checked={form.consent} onChange={(e) => handleChange("consent", e.target.checked)} />
-              <label className="text-sm text-blue-700">I consent to the bank checking my credit information and processing this application.</label>
+              <input
+                type="checkbox"
+                checked={form.consent}
+                onChange={(e) => handleChange("consent", e.target.checked)}
+              />
+              <label className="text-sm text-blue-700">
+                I consent to the bank checking my credit information and
+                processing this application.
+              </label>
             </div>
-            {errors.consent && <p className="text-xs text-destructive">{errors.consent}</p>}
+            {errors.consent && (
+              <p className="text-xs text-destructive">{errors.consent}</p>
+            )}
           </div>
 
           <div className="flex items-center justify-end space-x-2">
-            <Button size="sm" variant="outline" onClick={() => { setForm(initialForm); setMode("manual"); }}>Reset</Button>
-            <Button size="sm" onClick={handlePreview}>Preview</Button>
-            <Button size="sm" className="bg-blue-600" onClick={handleSubmit}>Submit Application</Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                // Reset to autofilled values, not empty initialForm
+                const profile = JSON.parse(
+                  localStorage.getItem("userProfile") || "{}"
+                );
+                const mock = {
+                  applicantName: "Vedant Bhatt",
+                  email: userEmail || "vedant@example.com",
+                  phone: "9876543210",
+                  dob: "1998-01-01",
+                  pan: "ABCDE1234F",
+                  aadhaar: "999900001111",
+                  address: "123, CSPIT Road, Charusat, Gujarat",
+                  employmentType: "Salaried",
+                  employerName: "Charusat Technologies",
+                  designation: "Student / Intern",
+                  annualIncome: "480000",
+                  purpose: "Loan for personal use",
+                  consent: true,
+                };
+
+                const loanAmount = selectedLoan
+                  ? selectedLoan.amount.replace(/[^0-9]/g, "")
+                  : "500000";
+                const loanTenure = selectedLoan
+                  ? selectedLoan.tenure.replace(/[^0-9]/g, "")
+                  : "5";
+                const loanInterest = selectedLoan
+                  ? selectedLoan.interest.replace(/[^0-9.]/g, "")
+                  : "10.5";
+
+                setForm({
+                  ...mock,
+                  ...profile,
+                  requestedAmount: loanAmount,
+                  tenureYears: loanTenure,
+                  interestRate: loanInterest,
+                });
+              }}
+            >
+              Reset Form
+            </Button>
+            <Button size="sm" onClick={handlePreview}>
+              Preview
+            </Button>
+            <Button size="sm" className="bg-blue-600" onClick={handleSubmit}>
+              Submit Application
+            </Button>
           </div>
 
           {/* Preview pane */}
@@ -360,45 +582,95 @@ const LoanApplicationModal = ({
             <div className="mt-4 bg-gray-50 border p-4 rounded">
               <div className="flex items-start justify-between">
                 <div>
-                  <h4 className="font-semibold text-blue-800">Application Preview</h4>
-                  <p className="text-sm text-muted-foreground">Review the details below before submitting</p>
+                  <h4 className="font-semibold text-blue-800">
+                    Application Preview
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    Review the details below before submitting
+                  </p>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Button size="sm" variant="outline" onClick={() => setPreviewOpen(false)}>Close Preview</Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setPreviewOpen(false)}
+                  >
+                    Close Preview
+                  </Button>
                 </div>
               </div>
 
               <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                   <p className="text-xs text-blue-600">Applicant</p>
-                  <h5 className="font-medium text-blue-800">{form.applicantName}</h5>
-                  <p className="text-sm text-blue-600">{form.email} • {form.phone}</p>
-                  <p className="text-sm text-blue-600">PAN: {form.pan} • Aadhaar: {form.aadhaar}</p>
-                  <p className="text-sm text-blue-600">Address: {form.address}</p>
+                  <h5 className="font-medium text-blue-800">
+                    {form.applicantName}
+                  </h5>
+                  <p className="text-sm text-blue-600">
+                    {form.email} • {form.phone}
+                  </p>
+                  <p className="text-sm text-blue-600">
+                    PAN: {form.pan} • Aadhaar: {form.aadhaar}
+                  </p>
+                  <p className="text-sm text-blue-600">
+                    Address: {form.address}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs text-blue-600">Loan Details</p>
-                  <h5 className="font-medium text-blue-800">{selectedLoan ? `${selectedLoan.bank} - ${selectedLoan.type}` : "Custom Loan"}</h5>
-                  <p className="text-sm text-blue-600">Amount: ₹{Number(form.requestedAmount || 0).toLocaleString("en-IN")}</p>
-                  <p className="text-sm text-blue-600">Tenure: {form.tenureYears} years • Interest: {form.interestRate}%</p>
-                  <p className="text-sm text-blue-600">Purpose: {form.purpose}</p>
+                  <h5 className="font-medium text-blue-800">
+                    {selectedLoan
+                      ? `${selectedLoan.bank} - ${selectedLoan.type}`
+                      : "Custom Loan"}
+                  </h5>
+                  <p className="text-sm text-blue-600">
+                    Amount: ₹
+                    {Number(form.requestedAmount || 0).toLocaleString("en-IN")}
+                  </p>
+                  <p className="text-sm text-blue-600">
+                    Tenure: {form.tenureYears} years • Interest:{" "}
+                    {form.interestRate}%
+                  </p>
+                  <p className="text-sm text-blue-600">
+                    Purpose: {form.purpose}
+                  </p>
                 </div>
 
                 <div className="col-span-1 md:col-span-2 flex items-center justify-between">
                   <div>
                     <p className="text-sm text-blue-600">Employment</p>
-                    <p className="text-sm text-blue-800">{form.employmentType} • {form.employerName} • {form.designation}</p>
-                    <p className="text-sm text-blue-600">Annual Income: ₹{Number(form.annualIncome || 0).toLocaleString("en-IN")}</p>
+                    <p className="text-sm text-blue-800">
+                      {form.employmentType} • {form.employerName} •{" "}
+                      {form.designation}
+                    </p>
+                    <p className="text-sm text-blue-600">
+                      Annual Income: ₹
+                      {Number(form.annualIncome || 0).toLocaleString("en-IN")}
+                    </p>
                   </div>
 
                   <div className="text-right space-y-2">
-                    <p className="text-sm text-blue-600">Application ID (preview)</p>
-                    <p className="font-semibold">Preview-{new Date().getTime().toString().slice(-6)}</p>
+                    <p className="text-sm text-blue-600">
+                      Application ID (preview)
+                    </p>
+                    <p className="font-semibold">
+                      Preview-{new Date().getTime().toString().slice(-6)}
+                    </p>
                     <div className="flex items-center space-x-2 mt-2">
-                      <Button size="sm" variant="outline" onClick={() => window.print()}>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => window.print()}
+                      >
                         <Printer className="h-4 w-4 mr-1" /> Print Preview
                       </Button>
-                      <Button size="sm" onClick={handleSubmit} className="bg-blue-600">Confirm & Submit</Button>
+                      <Button
+                        size="sm"
+                        onClick={handleSubmit}
+                        className="bg-blue-600"
+                      >
+                        Confirm & Submit
+                      </Button>
                     </div>
                   </div>
                 </div>
