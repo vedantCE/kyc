@@ -4,6 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
@@ -17,7 +19,10 @@ import {
   Clock,
   AlertCircle,
   BarChart3,
-  Activity
+  Activity,
+  X,
+  Check,
+  Eye
 } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 
@@ -124,34 +129,207 @@ const CreditCalculator = () => {
   );
 };
 
+// Rejection Form Component
+const RejectionForm = ({ application, onClose, onConfirm }) => {
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [customReason, setCustomReason] = useState("");
+  const [showCustomReason, setShowCustomReason] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  const rejectionReasons = [
+    "Low credit score / poor credit history",
+    "Insufficient income to cover EMI",
+    "High existing debt (debt-to-income ratio)",
+    "Unstable employment or business",
+    "Incomplete or incorrect documents",
+    "Poor banking habits (cheque bounces, overdrafts, etc.)",
+    "Unverifiable or fake information",
+    "Low collateral value (for secured loans)",
+    "Age factor (too young / nearing retirement)",
+    "High-risk or restricted location",
+    "Other (please specify)"
+  ];
+
+  const handleReasonSelect = (reason) => {
+    setRejectionReason(reason);
+    setShowCustomReason(reason === "Other (please specify)");
+    setShowDropdown(false);
+    if (reason !== "Other (please specify)") {
+      setCustomReason("");
+    }
+  };
+
+  const handleSubmit = () => {
+    const finalReason = rejectionReason === "Other (please specify)" ? customReason : rejectionReason;
+    if (finalReason.trim()) {
+      onConfirm(application.id, finalReason);
+      onClose();
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white p-6 rounded-lg w-full max-w-md mx-4">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold">Reject Application</h3>
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+        
+        <div className="mb-4">
+          <p className="text-sm text-gray-600 mb-1">
+            <span className="font-medium">Application ID:</span> {application.id}
+          </p>
+          <p className="text-sm text-gray-600">
+            <span className="font-medium">Customer:</span> {application.customerName}
+          </p>
+        </div>
+        
+        <div className="space-y-4 mb-4">
+          <div className="relative">
+            <label className="text-sm font-medium block mb-1">Reason for Rejection</label>
+            <div 
+              className="flex items-center justify-between w-full p-2 border border-gray-300 rounded-md cursor-pointer bg-white"
+              onClick={() => setShowDropdown(!showDropdown)}
+            >
+              <span className={rejectionReason ? "text-gray-800" : "text-gray-500"}>
+                {rejectionReason || "Select a reason"}
+              </span>
+              <svg 
+                className={`h-4 w-4 transition-transform ${showDropdown ? "rotate-180" : ""}`} 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+            
+            {showDropdown && (
+              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                {rejectionReasons.map((reason) => (
+                  <div
+                    key={reason}
+                    className="p-2 hover:bg-gray-100 cursor-pointer"
+                    onClick={() => handleReasonSelect(reason)}
+                  >
+                    {reason}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          
+          {showCustomReason && (
+            <div>
+              <label className="text-sm font-medium block mb-1">Specify Reason</label>
+              <Textarea
+                value={customReason}
+                onChange={(e) => setCustomReason(e.target.value)}
+                placeholder="Please provide the reason for rejection..."
+                rows={3}
+              />
+            </div>
+          )}
+        </div>
+        
+        <div className="flex justify-end space-x-2">
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleSubmit}
+            className="bg-red-500 hover:bg-red-600"
+            disabled={!rejectionReason || (rejectionReason === "Other (please specify)" && !customReason.trim())}
+          >
+            Confirm Rejection
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Review Form Component
+const ReviewForm = ({ application, onClose, onConfirm }) => {
+  const [reviewNotes, setReviewNotes] = useState("");
+
+  const handleSubmit = () => {
+    if (reviewNotes.trim()) {
+      onConfirm(application.id, reviewNotes);
+      onClose();
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white p-6 rounded-lg w-full max-w-md">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold">Review Application</h3>
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+        <p className="text-sm text-gray-600 mb-4">
+          Application ID: <span className="font-medium">{application.id}</span>
+        </p>
+        <p className="text-sm text-gray-600 mb-4">
+          Customer: <span className="font-medium">{application.customerName}</span>
+        </p>
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm font-medium">Review Notes</label>
+            <Textarea
+              value={reviewNotes}
+              onChange={(e) => setReviewNotes(e.target.value)}
+              placeholder="Add your review notes here..."
+              className="mt-1"
+              rows={4}
+            />
+          </div>
+          <div className="flex justify-end space-x-2">
+            <Button variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSubmit}
+              className="bg-blue-500 hover:bg-blue-600"
+              disabled={!reviewNotes.trim()}
+            >
+              Submit Review
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Success Animation Component
+const SuccessAnimation = ({ message, onClose, isRejection = false }) => {
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white p-8 rounded-lg text-center max-w-md">
+        <div className={`w-16 h-16 ${isRejection ? 'bg-red-100' : 'bg-green-100'} rounded-full flex items-center justify-center mx-auto mb-4`}>
+          {isRejection ? (
+            <XCircle className="h-8 w-8 text-red-600" />
+          ) : (
+            <Check className="h-8 w-8 text-green-600" />
+          )}
+        </div>
+        <h3 className="text-lg font-semibold mb-2">{isRejection ? 'Rejected!' : 'Success!'}</h3>
+        <p className="text-gray-600 mb-6">{message}</p>
+        <Button onClick={onClose}>Continue</Button>
+      </div>
+    </div>
+  );
+};
+
 const BankDashboard = () => {
   const navigate = useNavigate();
   const [searchUser, setSearchUser] = useState("");
-  const bankEmail = "bank@demo.com";
-
-  const handleLogout = () => {
-    navigate("/signin");
-  };
-  
-  // Mock bank data
-  const totalUsers = 15420;
-  const totalApplications = 2847;
-  const approvalRate = 73.5;
-
-  const riskDistribution = [
-    { name: 'Low Risk', value: 65, color: 'hsl(142 76% 36%)' },
-    { name: 'Medium Risk', value: 25, color: 'hsl(38 92% 50%)' },
-    { name: 'High Risk', value: 10, color: 'hsl(0 84.2% 60.2%)' }
-  ];
-
-  const bureauStatus = [
-    { name: "CIBIL", status: "Active", responseTime: "120ms", lastUpdate: "2 min ago", color: "success" },
-    { name: "Experian", status: "Active", responseTime: "95ms", lastUpdate: "1 min ago", color: "success" },
-    { name: "Equifax", status: "Warning", responseTime: "450ms", lastUpdate: "5 min ago", color: "warning" },
-    { name: "CRIF", status: "Active", responseTime: "180ms", lastUpdate: "3 min ago", color: "success" }
-  ];
-
-  const loanApplications = [
+  const [applications, setApplications] = useState([
     {
       id: "LA2024001",
       customerName: "Rajesh Kumar",
@@ -206,7 +384,90 @@ const BankDashboard = () => {
       status: "Rejected",
       appliedDate: "2024-08-05",
       customerEmail: "vikash@example.com"
+    },
+    {
+      id: "LA2024006",
+      customerName: "Neha Gupta",
+      loanType: "Education Loan",
+      amount: "₹7,50,000",
+      creditScore: 710,
+      riskLevel: "Low",
+      status: "Pending",
+      appliedDate: "2024-08-10",
+      customerEmail: "neha@example.com"
+    },
+    {
+      id: "LA2024007",
+      customerName: "Rahul Malhotra",
+      loanType: "Home Loan",
+      amount: "₹35,00,000",
+      creditScore: 625,
+      riskLevel: "Medium",
+      status: "Under Review",
+      appliedDate: "2024-08-09",
+      customerEmail: "rahul@example.com"
+    },
+    {
+      id: "LA2024008",
+      customerName: "Sanjay Verma",
+      loanType: "Business Loan",
+      amount: "₹18,00,000",
+      creditScore: 680,
+      riskLevel: "Medium",
+      status: "Pending",
+      appliedDate: "2024-08-11",
+      customerEmail: "sanjay@example.com"
+    },
+    {
+      id: "LA2024009",
+      customerName: "Anjali Desai",
+      loanType: "Personal Loan",
+      amount: "₹4,50,000",
+      creditScore: 580,
+      riskLevel: "High",
+      status: "Rejected",
+      appliedDate: "2024-08-07",
+      customerEmail: "anjali@example.com"
+    },
+    {
+      id: "LA2024010",
+      customerName: "Mohammed Khan",
+      loanType: "Car Loan",
+      amount: "₹9,00,000",
+      creditScore: 730,
+      riskLevel: "Low",
+      status: "Approved",
+      appliedDate: "2024-08-12",
+      customerEmail: "mohammed@example.com"
     }
+  ]);
+  const [rejectingApplication, setRejectingApplication] = useState(null);
+  const [reviewingApplication, setReviewingApplication] = useState(null);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [isRejectionSuccess, setIsRejectionSuccess] = useState(false);
+  const bankEmail = "bank@demo.com";
+
+  const handleLogout = () => {
+    navigate("/signin");
+  };
+  
+  // Mock bank data
+  const totalUsers = 15420;
+  const totalApplications = 2847;
+  const approvalRate = 73.5;
+
+  const riskDistribution = [
+    { name: 'Low Risk', value: 65, color: 'hsl(142 76% 36%)' },
+    { name: 'Medium Risk', value: 25, color: 'hsl(38 92% 50%)' },
+    { name: 'High Risk', value: 10, color: 'hsl(0 84.2% 60.2%)' }
+  ];
+
+  const bureauStatus = [
+    { name: "CIBIL", status: "Active", responseTime: "120ms", lastUpdate: "2 min ago", color: "success" },
+    { name: "Experian", status: "Active", responseTime: "95ms", lastUpdate: "1 min ago", color: "success" },
+    { name: "Equifax", status: "Warning", responseTime: "450ms", lastUpdate: "5 min ago", color: "warning" },
+    { name: "CRIF", status: "Active", responseTime: "180ms", lastUpdate: "3 min ago", color: "success" }
   ];
 
   const monthlyData = [
@@ -257,11 +518,58 @@ const BankDashboard = () => {
     return icons[color] || <Clock className="h-4 w-4 text-gray-400" />;
   };
 
-  const filteredApplications = loanApplications.filter(app => 
+  const filteredApplications = applications.filter(app => 
     app.customerName.toLowerCase().includes(searchUser.toLowerCase()) ||
     app.customerEmail.toLowerCase().includes(searchUser.toLowerCase()) ||
     app.id.toLowerCase().includes(searchUser.toLowerCase())
   );
+
+  const handleReview = (applicationId, reviewNotes) => {
+    // Update application status to "Under Review" and add review notes
+    setApplications(prev => prev.map(app => 
+      app.id === applicationId ? {...app, status: "Under Review", reviewNotes} : app
+    ));
+    
+    setSuccessMessage("Application has been reviewed successfully");
+    setShowSuccess(true);
+    setIsRejectionSuccess(false);
+  };
+
+  const handleApprove = (applicationId) => {
+    // Update application status to "Approved"
+    setApplications(prev => prev.map(app => 
+      app.id === applicationId ? {...app, status: "Approved"} : app
+    ));
+    
+    setSuccessMessage("Application approved successfully!");
+    setShowSuccess(true);
+    setIsRejectionSuccess(false);
+  };
+
+  const handleReject = (applicationId, reason) => {
+    // Remove the application from the list (delete it)
+    setApplications(prev => prev.filter(app => app.id !== applicationId));
+    
+    setSuccessMessage("Application rejected successfully");
+    setShowSuccess(true);
+    setIsRejectionSuccess(true);
+  };
+
+  const openRejectionForm = (application) => {
+    setRejectingApplication(application);
+  };
+
+  const closeRejectionForm = () => {
+    setRejectingApplication(null);
+  };
+
+  const openReviewForm = (application) => {
+    setReviewingApplication(application);
+  };
+
+  const closeReviewForm = () => {
+    setReviewingApplication(null);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
@@ -486,11 +794,27 @@ const BankDashboard = () => {
                           <TableCell className="text-gray-600">{new Date(app.appliedDate).toLocaleDateString()}</TableCell>
                           <TableCell className="text-right">
                             <div className="flex items-center justify-end space-x-2">
-                              <Button variant="outline" size="sm" className="bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100">
-                                Review
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100"
+                                onClick={() => openReviewForm(app)}
+                              >
+                                <Eye className="h-4 w-4 mr-1" /> Review
                               </Button>
-                              <Button size="sm" className="bg-green-500 hover:bg-green-600 text-white">
+                              <Button 
+                                size="sm" 
+                                className="bg-green-500 hover:bg-green-600 text-white"
+                                onClick={() => handleApprove(app.id)}
+                              >
                                 Approve
+                              </Button>
+                              <Button 
+                                variant="destructive" 
+                                size="sm"
+                                onClick={() => openRejectionForm(app)}
+                              >
+                                Reject
                               </Button>
                             </div>
                           </TableCell>
@@ -599,6 +923,33 @@ const BankDashboard = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Rejection Form Modal */}
+      {rejectingApplication && (
+        <RejectionForm 
+          application={rejectingApplication} 
+          onClose={closeRejectionForm}
+          onConfirm={handleReject}
+        />
+      )}
+
+      {/* Review Form Modal */}
+      {reviewingApplication && (
+        <ReviewForm 
+          application={reviewingApplication} 
+          onClose={closeReviewForm}
+          onConfirm={handleReview}
+        />
+      )}
+
+      {/* Success Animation Modal */}
+      {showSuccess && (
+        <SuccessAnimation 
+          message={successMessage}
+          onClose={() => setShowSuccess(false)}
+          isRejection={isRejectionSuccess}
+        />
+      )}
     </div>
   );
 };
