@@ -168,7 +168,7 @@ const RejectionForm = ({ application, onClose, onConfirm }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-lg w-full max-w-md mx-4">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold">Reject Application</h3>
@@ -263,7 +263,7 @@ const ReviewForm = ({ application, onClose, onConfirm }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-lg w-full max-w-md">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold">Review Application</h3>
@@ -309,8 +309,8 @@ const ReviewForm = ({ application, onClose, onConfirm }) => {
 // Success Animation Component
 const SuccessAnimation = ({ message, onClose, isRejection = false }) => {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-8 rounded-lg text-center max-w-md">
+    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-white p-8 rounded-lg text-center max-w-md shadow-xl border border-gray-200">
         <div className={`w-16 h-16 ${isRejection ? 'bg-red-100' : 'bg-green-100'} rounded-full flex items-center justify-center mx-auto mb-4`}>
           {isRejection ? (
             <XCircle className="h-8 w-8 text-red-600" />
@@ -320,7 +320,9 @@ const SuccessAnimation = ({ message, onClose, isRejection = false }) => {
         </div>
         <h3 className="text-lg font-semibold mb-2">{isRejection ? 'Rejected!' : 'Success!'}</h3>
         <p className="text-gray-600 mb-6">{message}</p>
-        <Button onClick={onClose}>Continue</Button>
+        <Button onClick={onClose} className="bg-blue-500 hover:bg-blue-600">
+          Continue
+        </Button>
       </div>
     </div>
   );
