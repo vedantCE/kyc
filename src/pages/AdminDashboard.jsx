@@ -309,11 +309,10 @@ const AdminDashboard = () => {
 
         {/* Enhanced Tabs */}
         <Tabs defaultValue="customers" className="space-y-8">
-          <TabsList className="grid w-full grid-cols-5 bg-white/90 backdrop-blur-sm border border-slate-200 shadow-xl p-1 rounded-xl">
+          <TabsList className="grid w-full grid-cols-4 bg-white/90 backdrop-blur-sm border border-slate-200 shadow-xl p-1 rounded-xl">
             <TabsTrigger value="customers" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white rounded-lg transition-all duration-200">👥 Customer Management</TabsTrigger>
             <TabsTrigger value="banks" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white rounded-lg transition-all duration-200">🏦 Bank Performance</TabsTrigger>
             <TabsTrigger value="analytics" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white rounded-lg transition-all duration-200">📊 Website Analytics</TabsTrigger>
-            <TabsTrigger value="system" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white rounded-lg transition-all duration-200">⚙️ System Health</TabsTrigger>
             <TabsTrigger value="lookup" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white rounded-lg transition-all duration-200">🔍 Credit Lookup</TabsTrigger>
           </TabsList>
 
@@ -621,28 +620,6 @@ center p-2 bg-white/60 rounded-lg">
                 </Card>
               </div>
             </div>
-          </TabsContent>
-          <TabsContent value="system">
-            <Card className="bg-white/90 backdrop-blur-sm border border-slate-200 shadow-xl rounded-xl overflow-hidden">
-              <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-100">
-                <CardTitle className="flex items-center gap-2 text-slate-800">
-                  <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
-                  System Health Overview
-                </CardTitle>
-                <CardDescription>Monitor system performance and health metrics</CardDescription>
-              </CardHeader>
-              <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {systemMetrics.map((metric) => (
-                  <div key={metric.metric} className="bg-white/80 backdrop-blur-sm p-4 rounded-lg shadow hover:shadow-lg transition-shadow duration-200">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-slate-700">{metric.metric}</span>
-                      {getMetricBadge(metric.status)}
-                    </div>
-                    <div className="text-lg font-bold text-slate-900">{metric.value}</div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
           </TabsContent>
           <TabsContent value="lookup">
             <Card className="bg-white/90 backdrop-blur-sm border border-slate-200 shadow-xl rounded-xl overflow-hidden">

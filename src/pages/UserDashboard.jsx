@@ -1,15 +1,21 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  TrendingUp, 
-  Shield, 
-  CreditCard, 
+import {
+  TrendingUp,
+  Shield,
+  CreditCard,
   AlertCircle,
   FileText,
   HelpCircle,
@@ -20,13 +26,22 @@ import {
   Clock,
   Printer,
   FileCheck,
-  Bell, 
-  BellOff
+  Bell,
+  BellOff,
 } from "lucide-react";
 import { PayBillsModal } from "@/components/modals/PayBillsModal";
 import { ReduceUtilizationModal } from "@/components/modals/ReduceUtilizationModal";
 import { MaintainAccountsModal } from "@/components/modals/MaintainAccountsModal";
 import { DiversifyPortfolioModal } from "@/components/modals/DiversifyPortfolioModal";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  ResponsiveContainer,
+} from "recharts";
 
 /*
   This file extends the original UserDashboard by adding a full loan application flow.
@@ -82,7 +97,9 @@ const CreditCalculator = ({}) => {
   return (
     <div className="max-w-md mx-auto space-y-4 p-6 bg-white rounded-lg border border-blue-200">
       <div className="space-y-2">
-        <label className="text-sm font-medium text-blue-800">Loan Amount:</label>
+        <label className="text-sm font-medium text-blue-800">
+          Loan Amount:
+        </label>
         <Input
           type="text"
           value={calcLoanAmount}
@@ -93,7 +110,9 @@ const CreditCalculator = ({}) => {
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium text-blue-800">Credit Score:</label>
+        <label className="text-sm font-medium text-blue-800">
+          Credit Score:
+        </label>
         <Input
           type="text"
           value={calcCreditScore}
@@ -104,7 +123,9 @@ const CreditCalculator = ({}) => {
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium text-blue-800">Yearly Income:</label>
+        <label className="text-sm font-medium text-blue-800">
+          Yearly Income:
+        </label>
         <Input
           type="text"
           value={calcIncome}
@@ -151,38 +172,44 @@ const LoanApplicationModal = ({
   };
 
   const [form, setForm] = useState(() => {
-  // Get profile from localStorage or use mock data
-  const profile = JSON.parse(localStorage.getItem("userProfile") || "{}");
-  const mock = {
-    applicantName: "Vedant Bhatt",
-    email: userEmail || "vedant@example.com",
-    phone: "9876543210",
-    dob: "1998-01-01",
-    pan: "ABCDE1234F",
-    aadhaar: "999900001111",
-    address: "123, CSPIT Road, Charusat, Gujarat",
-    employmentType: "Salaried",
-    employerName: "Charusat Technologies",
-    designation: "Student / Intern",
-    annualIncome: "480000",
-    purpose: "Loan for personal use",
-    consent: true
-  };
+    // Get profile from localStorage or use mock data
+    const profile = JSON.parse(localStorage.getItem("userProfile") || "{}");
+    const mock = {
+      applicantName: "Vedant Bhatt",
+      email: userEmail || "vedant@example.com",
+      phone: "9876543210",
+      dob: "1998-01-01",
+      pan: "ABCDE1234F",
+      aadhaar: "999900001111",
+      address: "123, CSPIT Road, Charusat, Gujarat",
+      employmentType: "Salaried",
+      employerName: "Charusat Technologies",
+      designation: "Student / Intern",
+      annualIncome: "480000",
+      purpose: "Loan for personal use",
+      consent: true,
+    };
 
-  // Get loan amount, tenure, and interest from selected loan
-  const loanAmount = selectedLoan ? selectedLoan.amount.replace(/[^0-9]/g, "") : "500000";
-  const loanTenure = selectedLoan ? selectedLoan.tenure.replace(/[^0-9]/g, "") : "5";
-  const loanInterest = selectedLoan ? selectedLoan.interest.replace(/[^0-9.]/g, "") : "10.5";
+    // Get loan amount, tenure, and interest from selected loan
+    const loanAmount = selectedLoan
+      ? selectedLoan.amount.replace(/[^0-9]/g, "")
+      : "500000";
+    const loanTenure = selectedLoan
+      ? selectedLoan.tenure.replace(/[^0-9]/g, "")
+      : "5";
+    const loanInterest = selectedLoan
+      ? selectedLoan.interest.replace(/[^0-9.]/g, "")
+      : "10.5";
 
-  return {
-    ...initialForm,
-    ...mock,
-    ...profile,
-    requestedAmount: loanAmount,
-    tenureYears: loanTenure,
-    interestRate: loanInterest,
-  };
-});
+    return {
+      ...initialForm,
+      ...mock,
+      ...profile,
+      requestedAmount: loanAmount,
+      tenureYears: loanTenure,
+      interestRate: loanInterest,
+    };
+  });
   const [mode, setMode] = useState("autofill"); // Default to autofill
 
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -200,7 +227,7 @@ const LoanApplicationModal = ({
   //   setPreviewOpen(false);
   //   // eslint-disable-next-line react-hooks/exhaustive-deps
   // }, [isOpen, selectedLoan]);
-  
+
   useEffect(() => {
     if (selectedLoan && isOpen) {
       // Update only the loan-specific fields when selectedLoan changes
@@ -212,7 +239,7 @@ const LoanApplicationModal = ({
       }));
     }
   }, [selectedLoan, isOpen]);
-  
+
   const validate = () => {
     const e = {};
     if (!form.applicantName) e.applicantName = "Required";
@@ -695,48 +722,55 @@ const UserDashboard = () => {
     {
       id: 1,
       title: "Loan Application Submitted",
-      message: "Your application for HDFC Personal Loan (₹5,00,000) has been submitted successfully.",
+      message:
+        "Your application for HDFC Personal Loan (₹5,00,000) has been submitted successfully.",
       date: "2024-08-10 14:30",
       read: false,
-      type: "application"
+      type: "application",
     },
     {
       id: 2,
       title: "Credit Score Update",
-      message: "Your credit score has increased by 15 points to 742. Keep it up!",
+      message:
+        "Your credit score has increased by 15 points to 742. Keep it up!",
       date: "2024-08-08 09:15",
       read: false,
-      type: "score"
+      type: "score",
     },
     {
       id: 3,
       title: "Payment Due Reminder",
-      message: "Your HDFC Credit Card payment of ₹8,500 is due in 3 days (Aug 13).",
+      message:
+        "Your HDFC Credit Card payment of ₹8,500 is due in 3 days (Aug 13).",
       date: "2024-08-10 08:45",
       read: false,
-      type: "payment"
+      type: "payment",
     },
     {
       id: 4,
       title: "Loan Application Approved",
-      message: "Congratulations! Your SBI Home Loan application has been approved.",
+      message:
+        "Congratulations! Your SBI Home Loan application has been approved.",
       date: "2024-08-05 16:20",
       read: true,
-      type: "approval"
+      type: "approval",
     },
     {
       id: 5,
       title: "New Loan Offer",
-      message: "You're pre-approved for ICICI Personal Loan at 10.25% interest. Limited time offer!",
+      message:
+        "You're pre-approved for ICICI Personal Loan at 10.25% interest. Limited time offer!",
       date: "2024-08-09 11:30",
       read: false,
-      type: "offer"
-    }
-   ]);
+      type: "offer",
+    },
+  ]);
   useEffect(() => {
     document.title = "User Dashboard | CreditScore Pro";
     // load saved applications from localStorage
-    const saved = JSON.parse(localStorage.getItem("loanApplicationsSaved") || "[]");
+    const saved = JSON.parse(
+      localStorage.getItem("loanApplicationsSaved") || "[]"
+    );
     setApplications(saved);
   }, []);
 
@@ -752,18 +786,18 @@ const UserDashboard = () => {
     navigate("/signin");
   };
 
-    // Notification functions
+  // Notification functions
   const markAsRead = (id) => {
-    setNotifications(nots => 
-      nots.map(n => n.id === id ? {...n, read: true} : n)
+    setNotifications((nots) =>
+      nots.map((n) => (n.id === id ? { ...n, read: true } : n))
     );
   };
 
   const markAllAsRead = () => {
-    setNotifications(nots => nots.map(n => ({...n, read: true})));
+    setNotifications((nots) => nots.map((n) => ({ ...n, read: true })));
   };
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   // Mock data (same as original)
   const creditScore = 742;
@@ -829,18 +863,73 @@ const UserDashboard = () => {
     },
   ];
 
-  const improvementActions = [
-    { action: "Pay credit card bills on time", impact: "+15 points", timeframe: "3 months", priority: "High" },
-    { action: "Reduce credit utilization below 30%", impact: "+25 points", timeframe: "2 months", priority: "High" },
-    { action: "Maintain older credit accounts", impact: "+10 points", timeframe: "6 months", priority: "Medium" },
-    { action: "Diversify credit portfolio", impact: "+8 points", timeframe: "12 months", priority: "Low" },
+  const creditHistory = [
+    {
+      event: "HDFC Credit Card Payment",
+      date: "2024-08-13",
+      status: "Paid on time",
+      impact: "+",
+      details: "₹8,500 payment made before due date.",
+    },
+    {
+      event: "SBI Home Loan",
+      date: "2024-08-05",
+      status: "Approved",
+      impact: "+",
+      details: "Home loan for ₹25,00,000 approved.",
+    },
+    {
+      event: "CIBIL Inquiry",
+      date: "2024-07-30",
+      status: "Soft inquiry",
+      impact: "Neutral",
+      details: "Credit score checked, no negative impact.",
+    },
+    {
+      event: "Car Loan Application",
+      date: "2024-07-08",
+      status: "Rejected",
+      impact: "-",
+      details: "Car loan application rejected due to low income.",
+    },
+  ];
+
+  const creditScoreHistory = [
+    { month: "Jan", score: 785 },
+    { month: "Feb", score: 651 },
+    { month: "Mar", score: 755 },
+    { month: "Apr", score: 855 },
+    { month: "May", score: 750 },
+    { month: "Jun", score: 742 },
+    { month: "Jul", score: 698 },
+    { month: "Aug", score: 812 },
+    { month: "Sep", score: 679 },
+    { month: "Oct", score: 826 },
+    { month: "Nov", score: 751 },
+    { month: "Dec", score: 798 },
   ];
 
   const faqs = [
-    { question: "Why did my credit score decrease?", answer: "Credit scores can decrease due to late payments, high credit utilization, new credit inquiries, or account closures." },
-    { question: "How often is my credit score updated?", answer: "Credit scores are typically updated monthly when lenders report payment information to credit bureaus." },
-    { question: "What is a good credit utilization ratio?", answer: "A credit utilization ratio below 30% is considered good, but below 10% is excellent for your credit score." },
-    { question: "How long do negative marks stay on my credit report?", answer: "Most negative marks stay on your credit report for 7 years, while bankruptcy can stay for up to 10 years." },
+    {
+      question: "Why did my credit score decrease?",
+      answer:
+        "Credit scores can decrease due to late payments, high credit utilization, new credit inquiries, or account closures.",
+    },
+    {
+      question: "How often is my credit score updated?",
+      answer:
+        "Credit scores are typically updated monthly when lenders report payment information to credit bureaus.",
+    },
+    {
+      question: "What is a good credit utilization ratio?",
+      answer:
+        "A credit utilization ratio below 30% is considered good, but below 10% is excellent for your credit score.",
+    },
+    {
+      question: "How long do negative marks stay on my credit report?",
+      answer:
+        "Most negative marks stay on your credit report for 7 years, while bankruptcy can stay for up to 10 years.",
+    },
   ];
 
   const getScoreColor = (score) => {
@@ -852,9 +941,23 @@ const UserDashboard = () => {
   const getRiskBadge = (risk) => {
     switch (risk) {
       case "Low":
-        return <Badge variant="secondary" className="bg-success text-success-foreground">Low Risk</Badge>;
+        return (
+          <Badge
+            variant="secondary"
+            className="bg-success text-success-foreground"
+          >
+            Low Risk
+          </Badge>
+        );
       case "Medium":
-        return <Badge variant="secondary" className="bg-warning text-warning-foreground">Medium Risk</Badge>;
+        return (
+          <Badge
+            variant="secondary"
+            className="bg-warning text-warning-foreground"
+          >
+            Medium Risk
+          </Badge>
+        );
       case "High":
         return <Badge variant="destructive">High Risk</Badge>;
       default:
@@ -915,22 +1018,30 @@ const UserDashboard = () => {
             <hr />
             <h3>Applicant Details</h3>
             <table>
-              <tr><th>Name</th><td>${application.applicant.applicantName}</td></tr>
+              <tr><th>Name</th><td>${
+                application.applicant.applicantName
+              }</td></tr>
               <tr><th>Email</th><td>${application.applicant.email}</td></tr>
               <tr><th>Phone</th><td>${application.applicant.phone}</td></tr>
               <tr><th>PAN</th><td>${application.applicant.pan || "-"}</td></tr>
-              <tr><th>Aadhaar</th><td>${application.applicant.aadhaar || "-"}</td></tr>
-              <tr><th>Address</th><td>${application.applicant.address || "-"}</td></tr>
-              <tr><th>Annual Income</th><td>₹${Number(application.applicant.annualIncome || 0).toLocaleString("en-IN")}</td></tr>
+              <tr><th>Aadhaar</th><td>${
+                application.applicant.aadhaar || "-"
+              }</td></tr>
+              <tr><th>Address</th><td>${
+                application.applicant.address || "-"
+              }</td></tr>
+              <tr><th>Annual Income</th><td>₹${Number(
+                application.applicant.annualIncome || 0
+              ).toLocaleString("en-IN")}</td></tr>
             </table>
           </div>
         </body>
       </html>
     `;
 
-    const w = window.open('', '_blank');
+    const w = window.open("", "_blank");
     if (!w) {
-      alert('Please allow popups for printing');
+      alert("Please allow popups for printing");
       return;
     }
     w.document.write(html);
@@ -971,15 +1082,17 @@ const UserDashboard = () => {
                     <BellOff className="h-5 w-5 text-blue-600" />
                   )}
                 </Button>
-                
+
                 {/* Notification Dropdown */}
                 {notificationsOpen && (
                   <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg overflow-hidden z-50 border border-gray-200">
                     <div className="p-3 border-b bg-blue-50 flex justify-between items-center">
-                      <h3 className="font-medium text-blue-800">Notifications</h3>
-                      <Button 
-                        variant="link" 
-                        size="sm" 
+                      <h3 className="font-medium text-blue-800">
+                        Notifications
+                      </h3>
+                      <Button
+                        variant="link"
+                        size="sm"
                         className="text-blue-600 h-6"
                         onClick={markAllAsRead}
                       >
@@ -993,13 +1106,21 @@ const UserDashboard = () => {
                         </div>
                       ) : (
                         notifications.map((notification) => (
-                          <div 
-                            key={notification.id} 
-                            className={`p-3 hover:bg-blue-50 cursor-pointer ${!notification.read ? 'bg-blue-50' : ''}`}
+                          <div
+                            key={notification.id}
+                            className={`p-3 hover:bg-blue-50 cursor-pointer ${
+                              !notification.read ? "bg-blue-50" : ""
+                            }`}
                             onClick={() => markAsRead(notification.id)}
                           >
                             <div className="flex justify-between">
-                              <h4 className={`text-sm font-medium ${!notification.read ? 'text-blue-800' : 'text-gray-700'}`}>
+                              <h4
+                                className={`text-sm font-medium ${
+                                  !notification.read
+                                    ? "text-blue-800"
+                                    : "text-gray-700"
+                                }`}
+                              >
                                 {notification.title}
                               </h4>
                               {!notification.read && (
@@ -1017,9 +1138,9 @@ const UserDashboard = () => {
                       )}
                     </div>
                     <div className="p-2 border-t bg-gray-50 text-center">
-                      <Button 
-                        variant="link" 
-                        size="sm" 
+                      <Button
+                        variant="link"
+                        size="sm"
                         className="text-blue-600"
                         onClick={() => setNotificationsOpen(false)}
                       >
@@ -1029,7 +1150,7 @@ const UserDashboard = () => {
                   </div>
                 )}
               </div>
-              
+
               <span className="text-sm text-muted-foreground">
                 Welcome, {userEmail}
               </span>
@@ -1156,8 +1277,9 @@ const UserDashboard = () => {
               value="improve"
               className="rounded-full data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200"
             >
-              Improve Score
+              Credit History
             </TabsTrigger>
+
             <TabsTrigger
               value="calculator"
               className="rounded-full data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200"
@@ -1171,7 +1293,6 @@ const UserDashboard = () => {
               FAQ
             </TabsTrigger>
           </TabsList>
-
           <TabsContent value="loans">
             <Card>
               <CardHeader>
@@ -1260,7 +1381,6 @@ const UserDashboard = () => {
               </CardContent>
             </Card>
           </TabsContent>
-
           <TabsContent value="status">
             <Card>
               <CardHeader>
@@ -1353,100 +1473,42 @@ const UserDashboard = () => {
               </CardContent>
             </Card>
           </TabsContent>
-
           <TabsContent value="improve">
             <Card>
               <CardHeader>
-                <CardTitle>Recommended Actions to Improve Score</CardTitle>
+                <CardTitle>Credit Score Trend</CardTitle>
                 <CardDescription>
-                  Follow these recommendations to boost your credit score
+                  Track your credit score progress over recent months
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {improvementActions.map((action, index) => (
-                    <Card
-                      key={index}
-                      className="border-l-4 border-l-blue-500 bg-white hover:bg-blue-50 transition-all duration-300 shadow-md hover:shadow-lg"
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex justify-between items-start">
-                          <div className="space-y-2 flex-1">
-                            <h3 className="font-semibold text-blue-800">
-                              {action.action}
-                            </h3>
-                            <div className="flex items-center space-x-4">
-                              <Badge
-                                variant={
-                                  action.priority === "High"
-                                    ? "default"
-                                    : action.priority === "Medium"
-                                    ? "secondary"
-                                    : "outline"
-                                }
-                                className="bg-blue-100 text-blue-800 border-blue-200"
-                              >
-                                {action.priority} Priority
-                              </Badge>
-                              <span className="text-sm text-success font-medium">
-                                {action.impact}
-                              </span>
-                              <span className="text-sm text-blue-600">
-                                in {action.timeframe}
-                              </span>
-                            </div>
-                          </div>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="border-blue-300 text-blue-700 hover:bg-blue-50 hover:border-blue-400"
-                            onClick={() => {
-                              // Map each action to its corresponding modal
-                              const modalMap = [
-                                "payBills",
-                                "reduceUtilization",
-                                "maintainAccounts",
-                                "diversifyPortfolio",
-                              ];
-                              setActiveModal(modalMap[index]);
-                            }}
-                          >
-                            Learn More
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                <ResponsiveContainer width="100%" height={400}>
+                  <LineChart
+                    data={creditScoreHistory}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" interval={0} />
+                    <YAxis domain={[600, 900]} />
+                    <Tooltip />
+                    <Line
+                      type="monotone"
+                      dataKey="score"
+                      stroke="#3b82f6"
+                      strokeWidth={3}
+                      dot={{ r: 5 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
               </CardContent>
             </Card>
-
-            {/* Render all modals (add this at the bottom of your UserDashboard component) */}
-            <PayBillsModal
-              isOpen={activeModal === "payBills"}
-              onClose={() => setActiveModal(null)}
-            />
-            <ReduceUtilizationModal
-              isOpen={activeModal === "reduceUtilization"}
-              onClose={() => setActiveModal(null)}
-            />
-            <MaintainAccountsModal
-              isOpen={activeModal === "maintainAccounts"}
-              onClose={() => setActiveModal(null)}
-            />
-            <DiversifyPortfolioModal
-              isOpen={activeModal === "diversifyPortfolio"}
-              onClose={() => setActiveModal(null)}
-            />
           </TabsContent>
-
           <TabsContent value="calculator">
             <Card>
               <CardHeader>
-                <CardTitle>Credit Calculator</CardTitle>
+                <CardTitle>Credit Eligibility Calculator</CardTitle>
                 <CardDescription>
-                  Calculate estimated loan approval amounts based on your credit
-                  score and income
+                  Estimate your loan eligibility based on your credit profile
                 </CardDescription>
               </CardHeader>
               <CardContent>
