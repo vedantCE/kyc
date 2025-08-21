@@ -316,7 +316,7 @@ const Index = () => {
             <div>
               <div className="flex items-center space-x-2 mb-4">
                 <Shield className="h-6 w-6" />
-                <span className="text-xl font-bold">CreditScore Pro</span>
+                <span className="text-xl font-bold">CreditScore</span>
               </div>
               <p className="text-slate-400">Unified credit intelligence for smart lending decisions.</p>
             </div>
