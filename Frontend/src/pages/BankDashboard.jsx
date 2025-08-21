@@ -549,8 +549,10 @@ const BankDashboard = () => {
   };
 
   const handleReject = (applicationId, reason) => {
-    // Remove the application from the list (delete it)
-    setApplications(prev => prev.filter(app => app.id !== applicationId));
+    // Update application status to "Rejected" with reason
+    setApplications(prev => prev.map(app => 
+      app.id === applicationId ? {...app, status: "Rejected", rejectionReason: reason} : app
+    ));
     
     setSuccessMessage("Application rejected successfully");
     setShowSuccess(true);
