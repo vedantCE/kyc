@@ -486,13 +486,13 @@ const BankDashboard = () => {
   const getStatusBadge = (status) => {
     switch (status) {
       case "Approved":
-        return <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-200">✓ Approved</Badge>;
+        return <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-200">Approved</Badge>;
       case "Rejected":
-        return <Badge className="bg-red-100 text-red-700 border-red-200 hover:bg-red-200">✗ Rejected</Badge>;
+        return <Badge className="bg-red-100 text-red-700 border-red-200 hover:bg-red-200">Rejected</Badge>;
       case "Pending":
-        return <Badge className="bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-200">⏳ Pending</Badge>;
+        return <Badge className="bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-200">Pending</Badge>;
       case "Under Review":
-        return <Badge className="bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200">👁 Under Review</Badge>;
+        return <Badge className="bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200">Under Review</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -501,11 +501,11 @@ const BankDashboard = () => {
   const getRiskBadge = (risk) => {
     switch (risk) {
       case "Low":
-        return <Badge className="bg-green-100 text-green-700 border-green-200">🟢 Low</Badge>;
+        return <Badge className="bg-green-100 text-green-700 border-green-200">Low</Badge>;
       case "Medium":
-        return <Badge className="bg-yellow-100 text-yellow-700 border-yellow-200">🟡 Medium</Badge>;
+        return <Badge className="bg-yellow-100 text-yellow-700 border-yellow-200">Medium</Badge>;
       case "High":
-        return <Badge className="bg-red-100 text-red-700 border-red-200">🔴 High</Badge>;
+        return <Badge className="bg-red-100 text-red-700 border-red-200">High</Badge>;
       default:
         return <Badge variant="outline">{risk}</Badge>;
     }
