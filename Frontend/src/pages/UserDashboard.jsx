@@ -593,10 +593,8 @@ const LoanApplicationModal = ({
                   interestRate: loanInterest,
                 });
               }}
-            >
-              
-            </Button>
-           
+            ></Button>
+
             <Button size="sm" className="bg-blue-600" onClick={handleSubmit}>
               Submit Application
             </Button>
@@ -1054,11 +1052,20 @@ const UserDashboard = () => {
       <div className="bg-background border-b shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Shield className="h-8 w-8 text-primary" />
-              <span className="text-2xl font-bold text-gradient-primary">
-                CreditScore Pro
-              </span>
+            <div className="flex items-center space-x-4">
+              <div className="relative">
+                <div className="relative bg-gradient-to-r from-blue-600 to-blue-800 p-2 rounded-lg">
+                  <Shield className="h-8 w-8 text-white" />
+                </div>
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-700 to-blue-900 bg-clip-text text-transparent">
+                  CreditScore Pro
+                </h1>
+                <Badge className="bg-blue-100 text-blue-700 border-blue-200 mt-1">
+                  Admin Portal
+                </Badge>
+              </div>
             </div>
             <div className="flex items-center space-x-4">
               {/* Notification Button */}

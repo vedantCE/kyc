@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Shield } from "lucide-react";
@@ -17,7 +23,7 @@ const SignIn = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     setTimeout(() => {
       if (email.includes("admin")) {
         localStorage.setItem("userRole", "admin");
@@ -32,7 +38,7 @@ const SignIn = () => {
         localStorage.setItem("userEmail", email);
         navigate("/user-dashboard");
       }
-      
+
       toast({
         title: "Welcome back!",
         description: "You have been successfully signed in.",
@@ -42,21 +48,37 @@ const SignIn = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white-50 via-blue-50 to-blue-50 flex items-center justify-center p-6" style={{ backdropFilter: "#ffffff" }}>
+    <div
+      className="min-h-screen bg-gradient-to-br from-white-50 via-blue-50 to-blue-50 flex items-center justify-center p-6"
+      style={{ backdropFilter: "#ffffff" }}
+    >
       <div className="w-full max-w-md">
         <div className="text-center mb-10">
           <Link
             to="/"
             className="inline-flex items-center space-x-2 text-blue-700 hover:text-blue-500 transition-colors"
           >
-            <Shield className="h-8 w-8" />
-            <span className="text-3xl font-extrabold tracking-wide">CreditScore Pro</span>
+            {/* <Shield className="bg-white-500 text-blue-700 border-blue-200 mt-1"/> */}
+            <div className="flex items-center justify-center space-x-4">
+              <div className="relative">
+                <div className="relative bg-gradient-to-r from-blue-600 to-blue-800 p-2 rounded-lg">
+                  <Shield className="h-8 w-8 text-white" />
+                </div>
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-700 to-blue-900 bg-clip-text text-transparent">
+                  CreditScore
+                </h1>
+              </div>
+            </div>
           </Link>
         </div>
 
         <Card className="bg-white border border-blue-200 shadow-lg rounded-xl">
           <CardHeader className="text-center pb-2">
-            <CardTitle className="text-3xl font-semibold text-blue-600">Welcome Back</CardTitle>
+            <CardTitle className="text-3xl font-semibold text-blue-600">
+              Welcome Back
+            </CardTitle>
             <CardDescription className="text-sm text-blue-500 mt-1">
               Sign in to access your credit dashboard
             </CardDescription>
@@ -120,9 +142,15 @@ const SignIn = () => {
 
             <div className="mt-5 p-4 bg-sky-100 rounded-lg text-sm text-blue-800">
               <p className="font-semibold mb-2 text-blue-700">Demo Accounts:</p>
-              <p>User: <span className="font-medium">user@demo.com</span></p>
-              <p>Bank: <span className="font-medium">bank@demo.com</span></p>
-              <p>Admin: <span className="font-medium">admin@demo.com</span></p>
+              <p>
+                User: <span className="font-medium">user@demo.com</span>
+              </p>
+              <p>
+                Bank: <span className="font-medium">bank@demo.com</span>
+              </p>
+              <p>
+                Admin: <span className="font-medium">admin@demo.com</span>
+              </p>
               <p className="mt-2 text-xs">Password: any password</p>
             </div>
           </CardContent>

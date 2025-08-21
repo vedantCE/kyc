@@ -93,10 +93,21 @@ const Index = () => {
       {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Shield className="h-8 w-8 text-primary" />
-            <span className="text-2xl font-bold text-primary">CreditScore Pro</span>
-          </div>
+          <div className="flex items-center space-x-4">
+              <div className="relative">
+                <div className="relative bg-gradient-to-r from-blue-600 to-blue-800 p-2 rounded-lg">
+                  <Shield className="h-8 w-8 text-white" />
+                </div>
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-700 to-blue-900 bg-clip-text text-transparent">
+                  CreditScore Pro
+                </h1>
+                <Badge className="bg-blue-100 text-blue-700 border-blue-200 mt-1">
+                  Admin Portal
+                </Badge>
+              </div>
+            </div>
           <nav className="hidden md:flex items-center space-x-6">
             <a href="#features" className="text-muted-foreground hover:text-primary transition-colors">Features</a>
             <a href="#how-it-works" className="text-muted-foreground hover:text-primary transition-colors">How It Works</a>
