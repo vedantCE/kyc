@@ -55,6 +55,8 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
+  LineChart,
+  Line,
 } from "recharts";
 
 // Credit Calculator Component
@@ -388,6 +390,93 @@ const SuccessAnimation = ({ message, onClose, isRejection = false }) => {
   );
 };
 
+// Bureau Score Speedometer Component
+const BureauScoreSpeedometer = ({ bureauName, score, range, peerAverage, postAverage }) => {
+  const [minScore, maxScore] = range.split(" - ").map(Number);
+  const percentage = ((score - minScore) / (maxScore - minScore)) * 100;
+  
+  const getNeedleRotation = (percentage) => {
+    // Inverted speedometer ranges from 135deg to -135deg (270deg total)
+    return 135 - (percentage * 270 / 100);
+  };
+
+  const getScoreColor = (percentage) => {
+    if (percentage >= 80) return "text-green-600";
+    if (percentage >= 60) return "text-yellow-600";
+    return "text-red-600";
+  };
+
+  const getGradientColor = (percentage) => {
+    if (percentage >= 80) return "from-green-500 to-green-700";
+    if (percentage >= 60) return "from-yellow-500 to-yellow-700";
+    return "from-red-500 to-red-700";
+  };
+
+  return (
+    <Card className="bg-white/80 backdrop-blur-sm border border-gray-200 shadow-lg rounded-xl p-4 h-full">
+      <CardContent className="flex flex-col items-center p-0">
+        {/* Bureau Name */}
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">{bureauName} Score</h3>
+        
+        {/* Score Display */}
+        <div className={`text-4xl font-bold ${getScoreColor(percentage)} mb-2`}>
+          {score}
+        </div>
+        
+        {/* Range */}
+        <div className="text-sm text-gray-500 mb-4">Range: {range}</div>
+        
+        {/* Inverted Speedometer */}
+        <div className="relative w-40 h-20 mb-4">
+          {/* Speedometer background */}
+          <div className="absolute w-40 h-20 overflow-hidden">
+            <div className="w-40 h-40 rounded-full border-8 border-gray-200 absolute -top-20"></div>
+          </div>
+          
+          {/* Colored arc (inverted) */}
+          <div className="absolute w-40 h-20 overflow-hidden">
+            <div className={`w-40 h-40 rounded-full border-8 bg-gradient-to-r ${getGradientColor(percentage)} absolute -top-20`} 
+                 style={{ clipPath: 'polygon(0% 0%, 100% 0%, 100% 50%, 0% 50%)' }}></div>
+          </div>
+          
+          {/* Needle (inverted) */}
+          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-1 h-20 bg-gray-800 rounded-full origin-top"
+               style={{ transform: `translateX(-50%) rotate(${getNeedleRotation(percentage)}deg)` }}>
+            <div className="absolute w-3 h-3 bg-gray-800 rounded-full -bottom-1.5 -left-1"></div>
+          </div>
+          
+          {/* Center circle */}
+          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-gray-800 rounded-full z-10"></div>
+          
+          {/* Labels (inverted) */}
+          <div className="absolute top-2 left-4 text-xs text-gray-600">{minScore}</div>
+          <div className="absolute top-2 right-4 text-xs text-gray-600">{maxScore}</div>
+        </div>
+        
+        {/* Comparison metrics */}
+        <div className="w-full space-y-3 mt-2">
+          <div className="text-center">
+            <div className="text-sm text-gray-600 mb-1">Excellent: {maxScore}</div>
+          </div>
+          
+          <div>
+            <div className="flex justify-between text-xs mb-1">
+              <span className="text-gray-600">Post Avg:</span>
+              <span className="font-medium">{postAverage}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className={`h-2 rounded-full ${getScoreColor(postAverage)}`} 
+                style={{ width: `${postAverage}%` }}
+              ></div>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 const BankDashboard = () => {
   const navigate = useNavigate();
   const [searchUser, setSearchUser] = useState("");
@@ -525,34 +614,45 @@ const BankDashboard = () => {
     { name: "High Risk", value: 10, color: "hsl(0 84.2% 60.2%)" },
   ];
 
-  const bureauStatus = [
-    {
-      name: "CIBIL",
-      status: "Active",
-      responseTime: "120ms",
-      lastUpdate: "2 min ago",
-      color: "success",
+  // Credit score history data
+  const creditScoreHistory = [
+    { month: "Sept 2024", cibil: 720, experian: 710, equifax: 690, crif: 730 },
+    { month: "Oct 2024", cibil: 730, experian: 715, equifax: 695, crif: 735 },
+    { month: "Nov 2024", cibil: 735, experian: 720, equifax: 700, crif: 740 },
+    { month: "Dec 2024", cibil: 745, experian: 730, equifax: 710, crif: 750 },
+    { month: "Jan 2025", cibil: 750, experian: 735, equifax: 720, crif: 755 },
+    { month: "Feb 2025", cibil: 761, experian: 744, equifax: 734, crif: 764 },
+  ];
+
+  // Bureau scores data
+  const bureauScores = [
+    { 
+      name: "CIBIL", 
+      score: 761, 
+      range: "300 - 900", 
+      peerAverage: 77, 
+      postAverage: 72 
     },
-    {
-      name: "Experian",
-      status: "Active",
-      responseTime: "95ms",
-      lastUpdate: "1 min ago",
-      color: "success",
+    { 
+      name: "Experian", 
+      score: 744, 
+      range: "300 - 900", 
+      peerAverage: 74, 
+      postAverage: 76 
     },
-    {
-      name: "Equifax",
-      status: "Warning",
-      responseTime: "450ms",
-      lastUpdate: "5 min ago",
-      color: "warning",
+    { 
+      name: "Equifax", 
+      score: 734, 
+      range: "300 - 900", 
+      peerAverage: 77, 
+      postAverage: 72 
     },
-    {
-      name: "CRIF",
-      status: "Active",
-      responseTime: "180ms",
-      lastUpdate: "3 min ago",
-      color: "success",
+    { 
+      name: "CRIF", 
+      score: 764, 
+      range: "1 - 999", 
+      peerAverage: 75, 
+      postAverage: 78 
     },
   ];
 
@@ -598,6 +698,7 @@ const BankDashboard = () => {
     }
   };
 
+
   const getRiskBadge = (risk) => {
     switch (risk) {
       case "Low":
@@ -621,14 +722,6 @@ const BankDashboard = () => {
     }
   };
 
-  const getBureauStatusIndicator = (status, color) => {
-    const icons = {
-      success: <CheckCircle className="h-4 w-4 text-green-600" />,
-      warning: <AlertCircle className="h-4 w-4 text-yellow-600" />,
-      error: <XCircle className="h-4 w-4 text-red-600" />,
-    };
-    return icons[color] || <Clock className="h-4 w-4 text-gray-400" />;
-  };
 
   const filteredApplications = applications.filter(
     (app) =>
@@ -1088,47 +1181,51 @@ const BankDashboard = () => {
                 <CardHeader className="bg-gradient-to-r from-gray-50 to-green-50 border-b border-gray-100">
                   <CardTitle className="flex items-center gap-2 text-gray-800">
                     <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                    Bureau Connectivity
+                    Credit Score History
                   </CardTitle>
                   <CardDescription>
-                    API response time and status
+                    Track how credit scores have changed over time
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-6">
-                  <div className="grid grid-cols-1 gap-4">
-                    {bureauStatus.map((bureau) => (
-                      <div
-                        key={bureau.name}
-                        className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-gray-50 to-blue-50 border border-gray-200"
-                      >
-                        <div className="flex items-center space-x-4">
-                          {getBureauStatusIndicator(
-                            bureau.status,
-                            bureau.color
-                          )}
-                          <div>
-                            <div className="font-semibold text-gray-800">
-                              {bureau.name}
-                            </div>
-                            <div className="text-sm text-gray-600">
-                              {bureau.status} • ⚡ {bureau.responseTime} • 🕐
-                              Updated {bureau.lastUpdate}
-                            </div>
-                          </div>
-                        </div>
-                        <Badge
-                          className={`${
-                            bureau.color === "success"
-                              ? "bg-green-100 text-green-700"
-                              : "bg-yellow-100 text-yellow-700"
-                          } font-medium`}
-                        >
-                          {bureau.color === "success"
-                            ? "✅ Healthy"
-                            : "⚠️ Warning"}
-                        </Badge>
-                      </div>
-                    ))}
+                  <div className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={creditScoreHistory}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="month" />
+                        <YAxis domain={[600, 800]} />
+                        <Tooltip />
+                        <Legend />
+                        <Line
+                          type="monotone"
+                          dataKey="cibil"
+                          stroke="hsl(214 95% 25%)"
+                          name="CIBIL"
+                          strokeWidth={2}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="experian"
+                          stroke="hsl(142 76% 36%)"
+                          name="Experian"
+                          strokeWidth={2}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="equifax"
+                          stroke="hsl(38 92% 50%)"
+                          name="Equifax"
+                          strokeWidth={2}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="crif"
+                          stroke="hsl(272 91% 65%)"
+                          name="CRIF"
+                          strokeWidth={2}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
                   </div>
                 </CardContent>
               </Card>
@@ -1136,52 +1233,80 @@ const BankDashboard = () => {
           </TabsContent>
 
           <TabsContent value="bureau">
-            <Card className="bg-white/80 backdrop-blur-sm border border-gray-200 shadow-xl rounded-xl overflow-hidden">
-              <CardHeader className="bg-gradient-to-r from-gray-50 to-purple-50 border-b border-gray-100">
-                <CardTitle className="flex items-center gap-2 text-gray-800">
-                  <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                  Credit Bureau Status
-                </CardTitle>
-                <CardDescription>
-                  Monitor credit bureau connectivity
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="grid grid-cols-1 gap-4">
-                  {bureauStatus.map((bureau) => (
-                    <div
+            <div className="space-y-6">
+              <Card className="bg-white/80 backdrop-blur-sm border border-gray-200 shadow-xl rounded-xl overflow-hidden">
+                <CardHeader className="bg-gradient-to-r from-gray-50 to-purple-50 border-b border-gray-100">
+                  <CardTitle className="flex items-center gap-2 text-gray-800">
+                    <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                    Credit Score History
+                  </CardTitle>
+                  <CardDescription>
+                    Track how your credit scores have changed over time
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={creditScoreHistory}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="month" />
+                        <YAxis domain={[600, 800]} />
+                        <Tooltip />
+                        <Legend />
+                        <Line
+                          type="monotone"
+                          dataKey="cibil"
+                          stroke="hsl(214 95% 25%)"
+                          name="CIBIL"
+                          strokeWidth={2}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="experian"
+                          stroke="hsl(142 76% 36%)"
+                          name="Experian"
+                          strokeWidth={2}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="equifax"
+                          stroke="hsl(38 92% 50%)"
+                          name="Equifax"
+                          strokeWidth={2}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="crif"
+                          stroke="hsl(272 91% 65%)"
+                          name="CRIF"
+                          strokeWidth={2}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+                              
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Bureau Scores</h3>
+                <p className="text-gray-600 mb-6">Current credit scores from all reporting bureaus</p>
+                              
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {bureauScores.map((bureau) => (
+                    <BureauScoreSpeedometer
                       key={bureau.name}
-                      className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-gray-50 to-blue-50 border border-gray-200"
-                    >
-                      <div className="flex items-center space-x-4">
-                        {getBureauStatusIndicator(bureau.status, bureau.color)}
-                        <div>
-                          <div className="font-semibold text-gray-800">
-                            {bureau.name}
-                          </div>
-                          <div className="text-sm text-gray-600">
-                            {bureau.status} • ⚡ {bureau.responseTime} • 🕐
-                            Updated {bureau.lastUpdate}
-                          </div>
-                        </div>
-                      </div>
-                      <Badge
-                        className={`${
-                          bureau.color === "success"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-yellow-100 text-yellow-700"
-                        } font-medium`}
-                      >
-                        {bureau.color === "success"
-                          ? "✅ Healthy"
-                          : "⚠️ Warning"}
-                      </Badge>
-                    </div>
+                      bureauName={bureau.name}
+                      score={bureau.score}
+                      range={bureau.range}
+                      peerAverage={bureau.peerAverage}
+                      postAverage={bureau.postAverage}
+                    />
                   ))}
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </TabsContent>
+          
           <TabsContent value="calculator">
             <CreditCalculator />
           </TabsContent>
