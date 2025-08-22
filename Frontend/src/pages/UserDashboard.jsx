@@ -144,6 +144,226 @@ const CreditCalculator = ({}) => {
   );
 };
 
+// Loan Details Modal Component
+const LoanDetailsModal = ({ isOpen, onClose, loan }) => {
+  if (!isOpen || !loan) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      <div className="w-full max-w-4xl bg-white rounded-lg shadow-lg overflow-hidden max-h-[90vh]">
+        <div
+          className="p-4 border-b flex items-center justify-between"
+          style={{ borderColor: "black" }}
+        >
+          <h3 className="text-lg font-semibold text-black">
+            {loan.bank} - {loan.type}
+          </h3>
+          <Button size="sm" variant="ghost" onClick={onClose}>
+            Close
+          </Button>
+        </div>
+        <div className="p-6 space-y-4">
+          <p className="text-sm text-gray-800">
+            Here are the detailed terms and conditions for this loan.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-900">
+            <div>
+              <p className="text-xs text-gray-700 font-medium">Loan Amount</p>
+              <p className="text-lg font-semibold">{loan.amount}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-700 font-medium">Interest Rate</p>
+              <p className="text-lg font-semibold">{loan.interest}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-700 font-medium">Tenure</p>
+              <p className="text-lg font-semibold">{loan.tenure}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-700 font-medium">Eligibility</p>
+              <p className="text-lg font-semibold">{loan.eligibility}</p>
+            </div>
+          </div>
+          <div
+            className="space-y-2 pt-4 border-t"
+            style={{ borderColor: "black" }}
+          >
+            <h4 className="font-semibold text-black">Key Features</h4>
+            <ul className="list-disc list-inside text-sm text-gray-800 space-y-1">
+              <li>No hidden charges or prepayment penalties.</li>
+              <li>Quick and hassle-free online application process.</li>
+              <li>Flexible repayment options with varying tenures.</li>
+              <li>Competitive interest rates for high credit scores.</li>
+            </ul>
+          </div>
+          <div
+            className="space-y-2 pt-4 border-t"
+            style={{ borderColor: "black" }}
+          >
+            <h4 className="font-semibold text-black">Required Documents</h4>
+            <ul className="list-disc list-inside text-sm text-gray-800 space-y-1">
+              <li>PAN Card & Aadhaar Card</li>
+              <li>Proof of Income (Salary slips/Bank statements)</li>
+              <li>Address Proof (Utility bill/Passport)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Loan Application Details Modal Component
+const LoanApplicationDetailsModal = ({ isOpen, onClose, application }) => {
+  if (!isOpen || !application) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      <div className="w-full max-w-2xl bg-white rounded-lg shadow-lg overflow-auto max-h-[90vh]">
+        <div
+          className="p-4 border-b flex items-center justify-between"
+          style={{ borderColor: "black" }}
+        >
+          <h3 className="text-lg font-semibold text-black">
+            Application Details
+          </h3>
+          <Button size="sm" variant="ghost" onClick={onClose}>
+            Close
+          </Button>
+        </div>
+        <div className="p-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p className="text-xs text-gray-700 font-medium">
+                Application ID
+              </p>
+              <p className="text-lg font-semibold text-black">
+                {application.id}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-700 font-medium">Status</p>
+              <p className="text-lg font-semibold text-black">
+                {application.status}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-700 font-medium">Applied Date</p>
+              <p className="text-lg font-semibold text-black">
+                {application.appliedDate}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-700 font-medium">Bank & Type</p>
+              <p className="text-lg font-semibold text-black">
+                {application.bank} - {application.type}
+              </p>
+            </div>
+          </div>
+
+          <div
+            className="space-y-4 pt-4 border-t"
+            style={{ borderColor: "black" }}
+          >
+            <h4 className="font-semibold text-black">Applicant Details</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-xs text-gray-700 font-medium">Full Name</p>
+                <p className="text-sm text-black">
+                  {application.applicant.applicantName}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-700 font-medium">Email</p>
+                <p className="text-sm text-black">
+                  {application.applicant.email}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-700 font-medium">Phone</p>
+                <p className="text-sm text-black">
+                  {application.applicant.phone}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-700 font-medium">
+                  Annual Income
+                </p>
+                <p className="text-sm text-black">
+                  ₹
+                  {Number(
+                    application.applicant.annualIncome || 0
+                  ).toLocaleString("en-IN")}
+                </p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-xs text-gray-700 font-medium">PAN</p>
+                <p className="text-sm text-black">
+                  {application.applicant.pan || "-"}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-700 font-medium">Aadhaar</p>
+                <p className="text-sm text-black">
+                  {application.applicant.aadhaar || "-"}
+                </p>
+              </div>
+            </div>
+            <div>
+              <p className="text-xs text-gray-700 font-medium">Address</p>
+              <p className="text-sm text-black">
+                {application.applicant.address || "-"}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-700 font-medium">Purpose</p>
+              <p className="text-sm text-black">
+                {application.applicant.purpose || "-"}
+              </p>
+            </div>
+          </div>
+
+          <div
+            className="space-y-4 pt-4 border-t"
+            style={{ borderColor: "black" }}
+          >
+            <h4 className="font-semibold text-black">Loan Request Details</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-xs text-gray-700 font-medium">
+                  Requested Amount
+                </p>
+                <p className="text-sm text-black">
+                  ₹
+                  {Number(
+                    application.applicant.requestedAmount || 0
+                  ).toLocaleString("en-IN")}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-700 font-medium">Loan Tenure</p>
+                <p className="text-sm text-black">
+                  {application.applicant.tenureYears} years
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-700 font-medium">
+                  Interest Rate
+                </p>
+                <p className="text-sm text-black">
+                  {application.applicant.interestRate}%
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Loan Application Modal + Form + Preview
 const LoanApplicationModal = ({
   isOpen,
@@ -214,19 +434,6 @@ const LoanApplicationModal = ({
 
   const [previewOpen, setPreviewOpen] = useState(false);
   const [errors, setErrors] = useState({});
-
-  // useEffect(() => {
-  //   // When the modal opens or selectedLoan changes, reset form defaults
-  //   setForm((f) => ({
-  //     ...initialForm,
-  //     requestedAmount: initialForm.requestedAmount,
-  //     tenureYears: initialForm.tenureYears,
-  //     interestRate: initialForm.interestRate,
-  //   }));
-  //   setErrors({});
-  //   setPreviewOpen(false);
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [isOpen, selectedLoan]);
 
   useEffect(() => {
     if (selectedLoan && isOpen) {
@@ -316,28 +523,6 @@ const LoanApplicationModal = ({
           </div>
         </div>
         <div className="p-4 space-y-4">
-          {/* <div className="flex items-center justify-between">
-            <div className="text-sm text-muted-foreground">
-              Choose how you'd like to fill the form
-            </div>
-            <div className="space-x-2">
-              <Button
-                size="sm"
-                variant={mode === "manual" ? "default" : "outline"}
-                onClick={() => setMode("manual")}
-              >
-                Manual
-              </Button>
-              <Button
-                size="sm"
-                variant={mode === "autofill" ? "default" : "outline"}
-                onClick={handleAutofill}
-              >
-                Autofill
-              </Button>
-            </div>
-          </div> */}
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="space-y-2">
               <label className="text-xs font-medium text-blue-800">
@@ -551,50 +736,6 @@ const LoanApplicationModal = ({
           </div>
 
           <div className="flex items-center justify-end space-x-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => {
-                // Reset to autofilled values, not empty initialForm
-                const profile = JSON.parse(
-                  localStorage.getItem("userProfile") || "{}"
-                );
-                const mock = {
-                  applicantName: "Vedant Bhatt",
-                  email: userEmail || "vedant@example.com",
-                  phone: "9876543210",
-                  dob: "1998-01-01",
-                  pan: "ABCDE1234F",
-                  aadhaar: "999900001111",
-                  address: "123, CSPIT Road, Charusat, Gujarat",
-                  employmentType: "Salaried",
-                  employerName: "Charusat Technologies",
-                  designation: "Student / Intern",
-                  annualIncome: "480000",
-                  purpose: "Loan for personal use",
-                  consent: true,
-                };
-
-                const loanAmount = selectedLoan
-                  ? selectedLoan.amount.replace(/[^0-9]/g, "")
-                  : "500000";
-                const loanTenure = selectedLoan
-                  ? selectedLoan.tenure.replace(/[^0-9]/g, "")
-                  : "5";
-                const loanInterest = selectedLoan
-                  ? selectedLoan.interest.replace(/[^0-9.]/g, "")
-                  : "10.5";
-
-                setForm({
-                  ...mock,
-                  ...profile,
-                  requestedAmount: loanAmount,
-                  tenureYears: loanTenure,
-                  interestRate: loanInterest,
-                });
-              }}
-            ></Button>
-
             <Button size="sm" className="bg-blue-600" onClick={handleSubmit}>
               Submit Application
             </Button>
@@ -761,6 +902,15 @@ const UserDashboard = () => {
       type: "offer",
     },
   ]);
+
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedLoanForDetails, setSelectedLoanForDetails] = useState(null);
+
+  // NEW: State for Loan Application Details Modal
+  const [showApplicationDetailsModal, setShowApplicationDetailsModal] =
+    useState(false);
+  const [selectedApplication, setSelectedApplication] = useState(null);
+
   useEffect(() => {
     document.title = "User Dashboard | CreditScore Pro";
     // load saved applications from localStorage
@@ -929,9 +1079,9 @@ const UserDashboard = () => {
   ];
 
   const getScoreColor = (score) => {
-    if (score >= 750) return "text-success";
-    if (score >= 650) return "text-warning";
-    return "text-destructive";
+    if (score >= 750) return "text-green-600";
+    if (score >= 650) return "text-yellow-600";
+    return "text-red-600";
   };
 
   const getRiskBadge = (risk) => {
@@ -940,7 +1090,7 @@ const UserDashboard = () => {
         return (
           <Badge
             variant="secondary"
-            className="bg-success text-success-foreground"
+            className="bg-white text-blue-600 border border-gray-200"
           >
             Low Risk
           </Badge>
@@ -949,13 +1099,17 @@ const UserDashboard = () => {
         return (
           <Badge
             variant="secondary"
-            className="bg-warning text-warning-foreground"
+            className="bg-yellow-100 text-yellow-800 border-yellow-200"
           >
             Medium Risk
           </Badge>
         );
       case "High":
-        return <Badge variant="destructive">High Risk</Badge>;
+        return (
+          <Badge variant="destructive" className="bg-red-100 text-red-800">
+            High Risk
+          </Badge>
+        );
       default:
         return <Badge variant="outline">{risk}</Badge>;
     }
@@ -964,13 +1118,13 @@ const UserDashboard = () => {
   const getStatusIcon = (status) => {
     switch (status) {
       case "Approved":
-        return <CheckCircle className="h-4 w-4 text-success" />;
+        return <CheckCircle className="h-4 w-4 text-green-600" />;
       case "Rejected":
-        return <XCircle className="h-4 w-4 text-destructive" />;
+        return <XCircle className="h-4 w-4 text-red-600" />;
       case "Pending":
-        return <Clock className="h-4 w-4 text-warning" />;
+        return <Clock className="h-4 w-4 text-yellow-600" />;
       default:
-        return <AlertCircle className="h-4 w-4 text-muted-foreground" />;
+        return <AlertCircle className="h-4 w-4 text-gray-400" />;
     }
   };
 
@@ -979,14 +1133,23 @@ const UserDashboard = () => {
     setIsModalOpen(true);
   };
 
+  const openLoanDetailsModal = (loan) => {
+    setSelectedLoanForDetails(loan);
+    setShowDetailsModal(true);
+  };
+
+  // NEW: Function to open the Loan Application Details modal
+  const viewApplicationDetails = (application) => {
+    setSelectedApplication(application);
+    setShowApplicationDetailsModal(true);
+  };
+
   const handleNewApplication = (application) => {
     // add to applications and save
     setApplications((prev) => [application, ...prev]);
     // also show a small toast or console
     console.log("Application submitted:", application);
   };
-
-  const printableRef = useRef(null);
 
   const handlePrintReceipt = (application) => {
     // Create a printable window content using application data
@@ -1047,10 +1210,13 @@ const UserDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-subtle">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="bg-background border-b shadow-sm">
-        <div className="container mx-auto px-4 py-4">
+      <div
+        className="bg-white border-b shadow-sm"
+        style={{ backgroundColor: "white" }}
+      >
+        <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="relative">
@@ -1068,6 +1234,10 @@ const UserDashboard = () => {
               </div>
             </div>
             <div className="flex items-center space-x-4">
+              {/* User ID/Email Display */}
+              <span className="text-sm font-medium text-blue-800">
+                {userEmail}
+              </span>
               {/* Notification Button */}
               <div className="relative">
                 <Button
@@ -1156,14 +1326,11 @@ const UserDashboard = () => {
                 )}
               </div>
 
-              <span className="text-sm text-muted-foreground">
-                Welcome, {userEmail}
-              </span>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleLogout}
-                className="hover:bg-red-500 hover:text-white hover:border-red-500 transition-all duration-200"
+                className="bg-red-50 border-red-200 text-red-600 hover:bg-red-100 hover:border-red-300 transition-all duration-300"
               >
                 Logout
               </Button>
@@ -1171,7 +1338,7 @@ const UserDashboard = () => {
           </div>
         </div>
       </div>
-
+      {/* sjdhg */}
       <div className="container mx-auto px-4 py-8">
         {/* Top Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -1183,9 +1350,7 @@ const UserDashboard = () => {
               <TrendingUp className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div
-                className={`text-2xl font-bold ${getScoreColor(creditScore)}`}
-              >
+              <div className={`text-2xl font-bold ${getScoreColor(creditScore)}`}>
                 {creditScore}
               </div>
               <p className="text-xs text-blue-600">Excellent (750-850)</p>
@@ -1231,14 +1396,14 @@ const UserDashboard = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-blue-600">Approved</span>
-                  <span className="text-sm font-medium text-success">
+                  <span className="text-sm font-medium text-green-600">
                     {applications.filter((a) => a.status === "Approved")
                       .length || approvedLoans}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-blue-600">Rejected</span>
-                  <span className="text-sm font-medium text-destructive">
+                  <span className="text-sm font-medium text-red-600">
                     {applications.filter((a) => a.status === "Rejected")
                       .length || rejectedLoans}
                   </span>
@@ -1374,7 +1539,7 @@ const UserDashboard = () => {
                           <Button
                             className="w-full border border-blue-200"
                             size="sm"
-                            onClick={() => alert("More details coming soon")}
+                            onClick={() => openLoanDetailsModal(loan)}
                           >
                             Details
                           </Button>
@@ -1446,7 +1611,7 @@ const UserDashboard = () => {
                               )}
                             {application.status === "Approved" &&
                               application.approvedDate && (
-                                <p className="text-xs text-success">
+                                <p className="text-xs text-green-600">
                                   Approved: {application.approvedDate}
                                 </p>
                               )}
@@ -1457,16 +1622,16 @@ const UserDashboard = () => {
                                 variant="outline"
                                 onClick={() => handlePrintReceipt(application)}
                               >
-                                <Printer className="h-4 w-4 mr-1" /> Print
-                                Receipt
+                                Print Receipt
                               </Button>
                               <Button
                                 size="sm"
+                                variant="outline"
                                 onClick={() =>
-                                  alert("View details - coming soon")
+                                  viewApplicationDetails(application)
                                 }
                               >
-                                <FileCheck className="h-4 w-4 mr-1" /> View
+                                view
                               </Button>
                             </div>
                           </div>
@@ -1558,8 +1723,7 @@ const UserDashboard = () => {
           </TabsContent>
         </Tabs>
       </div>
-
-      {/* Loan Modal */}
+      {/* Loan Application Modal */}
       <LoanApplicationModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -1568,27 +1732,19 @@ const UserDashboard = () => {
         userEmail={userEmail}
       />
 
-      {/* Improvement Modals - ADD THIS BLOCK */}
-      {activeModal && (
-        <>
-          <PayBillsModal
-            isOpen={activeModal === "payBills"}
-            onClose={() => setActiveModal(null)}
-          />
-          <ReduceUtilizationModal
-            isOpen={activeModal === "reduceUtilization"}
-            onClose={() => setActiveModal(null)}
-          />
-          <MaintainAccountsModal
-            isOpen={activeModal === "maintainAccounts"}
-            onClose={() => setActiveModal(null)}
-          />
-          <DiversifyPortfolioModal
-            isOpen={activeModal === "diversifyPortfolio"}
-            onClose={() => setActiveModal(null)}
-          />
-        </>
-      )}
+      {/* Loan Details Modal */}
+      <LoanDetailsModal
+        isOpen={showDetailsModal}
+        onClose={() => setShowDetailsModal(false)}
+        loan={selectedLoanForDetails}
+      />
+
+      {/* Loan Application Details Modal */}
+      <LoanApplicationDetailsModal
+        isOpen={showApplicationDetailsModal}
+        onClose={() => setShowApplicationDetailsModal(false)}
+        application={selectedApplication}
+      />
     </div>
   );
 };
