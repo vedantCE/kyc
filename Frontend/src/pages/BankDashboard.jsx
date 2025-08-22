@@ -55,6 +55,8 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
+  LineChart,
+  Line,
 } from "recharts";
 
 // Credit Calculator Component
@@ -237,9 +239,8 @@ const RejectionForm = ({ application, onClose, onConfirm }) => {
                 {rejectionReason || "Select a reason"}
               </span>
               <svg
-                className={`h-4 w-4 transition-transform ${
-                  showDropdown ? "rotate-180" : ""
-                }`}
+                className={`h-4 w-4 transition-transform ${showDropdown ? "rotate-180" : ""
+                  }`}
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -366,9 +367,8 @@ const SuccessAnimation = ({ message, onClose, isRejection = false }) => {
     <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="bg-white p-8 rounded-lg text-center max-w-md shadow-xl border border-gray-200">
         <div
-          className={`w-16 h-16 ${
-            isRejection ? "bg-red-100" : "bg-green-100"
-          } rounded-full flex items-center justify-center mx-auto mb-4`}
+          className={`w-16 h-16 ${isRejection ? "bg-red-100" : "bg-green-100"
+            } rounded-full flex items-center justify-center mx-auto mb-4`}
         >
           {isRejection ? (
             <XCircle className="h-8 w-8 text-red-600" />
@@ -385,6 +385,133 @@ const SuccessAnimation = ({ message, onClose, isRejection = false }) => {
         </Button>
       </div>
     </div>
+  );
+};
+const BureauScoreSpeedometer = ({ bureauName, score, range, peerAverage, postAverage }) => {
+  // Parse min and max from range string (support both – and -)
+  const [minScore, maxScore] = range.replace(/–/g, '-').split('-').map(s => Number(s.trim()));
+
+  // Ensure score is within bounds and calculate percentage
+  const clampedScore = Math.max(minScore, Math.min(maxScore, score));
+  const percent = (clampedScore - minScore) / (maxScore - minScore);
+
+  // SVG semicircle constants
+  const centerX = 100, centerY = 100, radius = 80;
+
+  // Calculate needle angle (from 180deg to 0deg)
+  // 180deg (left, min) to 0deg (right, max)
+  const angle = 180 - percent * 180;
+  const needleLength = radius - 9;
+  const rad = (angle * Math.PI) / 180;
+  const needleX = centerX + needleLength * Math.cos(rad);
+  const needleY = centerY - needleLength * Math.sin(rad);
+
+  // Helper for arc path
+  const describeArc = (x, y, r, startAngle, endAngle) => {
+    const start = {
+      x: x + r * Math.cos((Math.PI * startAngle) / 180),
+      y: y + r * Math.sin((Math.PI * startAngle) / 180),
+    };
+    const end = {
+      x: x + r * Math.cos((Math.PI * endAngle) / 180),
+      y: y + r * Math.sin((Math.PI * endAngle) / 180),
+    };
+    const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+    return [
+      "M", start.x, start.y,
+      "A", r, r, 0, largeArcFlag, 1, end.x, end.y
+    ].join(" ");
+  };
+
+  return (
+    <Card className="bg-white/80 backdrop-blur-sm border border-gray-200 shadow-lg rounded-xl p-6">
+      <CardContent className="p-0">
+        {/* Bureau Header */}
+        <div className="text-center mb-6">
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">{bureauName} Score</h3>
+          <div className="text-3xl font-bold text-blue-800">{score}</div>
+          <div className="text-sm text-gray-500 mt-1">Range: {range}</div>
+        </div>
+
+        {/* Semicircular Speedometer */}
+        <div className="flex flex-col items-center mb-6">
+          <svg width="200" height="120" viewBox="0 0 200 120">
+            {/* Background arc */}
+            <path
+              d={describeArc(centerX, centerY, radius, 180, 0)}
+              fill="none"
+              stroke="#e5e7eb"
+              strokeWidth="18"
+              strokeLinecap="round"
+            />
+            {/* Colored arc with gradient */}
+            <defs>
+              <linearGradient id="gauge-gradient" x1="20" y1="100" x2="180" y2="100" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stopColor="#f87171" />
+                <stop offset="50%" stopColor="#facc15" />
+                <stop offset="100%" stopColor="#22c55e" />
+              </linearGradient>
+            </defs>
+            <path
+              d={describeArc(centerX, centerY, radius, 180, 0)}
+              fill="none"
+              stroke="url(#gauge-gradient)"
+              strokeWidth="18"
+              strokeLinecap="round"
+            />
+            {/* Needle */}
+            <line
+              x1={centerX}
+              y1={centerY}
+              x2={needleX}
+              y2={needleY}
+              stroke="#2563eb"
+              strokeWidth="5"
+              strokeLinecap="round"
+            />
+            {/* Needle center circle */}
+            <circle cx={centerX} cy={centerY} r="8" fill="#2563eb" stroke="#fff" strokeWidth="3" />
+            {/* Min/Max labels */}
+            <text x={centerX - radius + 10} y={centerY + 20} fontSize="12" fill="#6b7280" textAnchor="start">{minScore}</text>
+            <text x={centerX + radius - 10} y={centerY + 20} fontSize="12" fill="#6b7280" textAnchor="end">{maxScore}</text>
+            {/* Poor/Excellent labels */}
+            <text x={centerX - radius + 10} y={centerY + 40} fontSize="12" fill="#ef4444" textAnchor="start">Poor</text>
+            <text x={centerX + radius - 10} y={centerY + 40} fontSize="12" fill="#22c55e" textAnchor="end">Excellent</text>
+          </svg>
+        </div>
+
+        {/* Comparison Metrics */}
+        <div className="grid grid-cols-2 gap-6">
+          {/* Peer Average */}
+          <div className="text-center">
+            <h4 className="text-sm font-medium text-gray-700 mb-3">Peer</h4>
+            <div className="space-y-2">
+              <div className="h-2 bg-gray-200 rounded-full overflow-hidden mx-2">
+                <div
+                  className="h-full bg-blue-500"
+                  style={{ width: `${peerAverage}%` }}
+                ></div>
+              </div>
+              <div className="text-xs text-gray-600">Average {peerAverage}%</div>
+            </div>
+          </div>
+
+          {/* Post Average */}
+          <div className="text-center">
+            <h4 className="text-sm font-medium text-gray-700 mb-3">Post</h4>
+            <div className="space-y-2">
+              <div className="h-2 bg-gray-200 rounded-full overflow-hidden mx-2">
+                <div
+                  className="h-full bg-green-500"
+                  style={{ width: `${postAverage}%` }}
+                ></div>
+              </div>
+              <div className="text-xs text-gray-600">Average {postAverage}%</div>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
@@ -525,36 +652,48 @@ const BankDashboard = () => {
     { name: "High Risk", value: 10, color: "hsl(0 84.2% 60.2%)" },
   ];
 
-  const bureauStatus = [
+  // Credit score history data
+  const creditScoreHistory = [
+    { month: "Sept 2024", cibil: 720, experian: 710, equifax: 690, crif: 730 },
+    { month: "Oct 2024", cibil: 730, experian: 715, equifax: 695, crif: 735 },
+    { month: "Nov 2024", cibil: 735, experian: 720, equifax: 700, crif: 740 },
+    { month: "Dec 2024", cibil: 745, experian: 730, equifax: 710, crif: 750 },
+    { month: "Jan 2025", cibil: 750, experian: 735, equifax: 720, crif: 755 },
+    { month: "Feb 2025", cibil: 761, experian: 744, equifax: 734, crif: 764 },
+  ];
+
+  // Bureau scores data
+  const bureauScores = [
     {
       name: "CIBIL",
-      status: "Active",
-      responseTime: "120ms",
-      lastUpdate: "2 min ago",
-      color: "success",
-    },
-    {
-      name: "Experian",
-      status: "Active",
-      responseTime: "95ms",
-      lastUpdate: "1 min ago",
-      color: "success",
+      score: 761,        // Excellent
+      range: "300 – 900",
+      peerAverage: 77,
+      postAverage: 72
     },
     {
       name: "Equifax",
-      status: "Warning",
-      responseTime: "450ms",
-      lastUpdate: "5 min ago",
-      color: "warning",
+      score: 642,        // ⚠️ Warning Zone (Orange)
+      range: "300 – 900",
+      peerAverage: 58,
+      postAverage: 61
+    },
+    {
+      name: "Experian",
+      score: 712,        // Good
+      range: "300 – 900",
+      peerAverage: 70,
+      postAverage: null  // still no post-average
     },
     {
       name: "CRIF",
-      status: "Active",
-      responseTime: "180ms",
-      lastUpdate: "3 min ago",
-      color: "success",
+      score: 805,        // Excellent
+      range: "1 – 999",
+      peerAverage: 79,
+      postAverage: 82
     },
   ];
+
 
   const monthlyData = [
     { month: "Jan", applications: 180, approvals: 132 },
@@ -598,6 +737,7 @@ const BankDashboard = () => {
     }
   };
 
+
   const getRiskBadge = (risk) => {
     switch (risk) {
       case "Low":
@@ -621,14 +761,6 @@ const BankDashboard = () => {
     }
   };
 
-  const getBureauStatusIndicator = (status, color) => {
-    const icons = {
-      success: <CheckCircle className="h-4 w-4 text-green-600" />,
-      warning: <AlertCircle className="h-4 w-4 text-yellow-600" />,
-      error: <XCircle className="h-4 w-4 text-red-600" />,
-    };
-    return icons[color] || <Clock className="h-4 w-4 text-gray-400" />;
-  };
 
   const filteredApplications = applications.filter(
     (app) =>
@@ -996,13 +1128,12 @@ const BankDashboard = () => {
                           </TableCell>
                           <TableCell>
                             <Badge
-                              className={`${
-                                app.creditScore >= 750
-                                  ? "bg-green-100 text-green-700"
-                                  : app.creditScore >= 650
+                              className={`${app.creditScore >= 750
+                                ? "bg-green-100 text-green-700"
+                                : app.creditScore >= 650
                                   ? "bg-yellow-100 text-yellow-700"
                                   : "bg-red-100 text-red-700"
-                              } font-bold`}
+                                } font-bold`}
                             >
                               {app.creditScore}
                             </Badge>
@@ -1088,47 +1219,51 @@ const BankDashboard = () => {
                 <CardHeader className="bg-gradient-to-r from-gray-50 to-green-50 border-b border-gray-100">
                   <CardTitle className="flex items-center gap-2 text-gray-800">
                     <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                    Bureau Connectivity
+                    Credit Score History
                   </CardTitle>
                   <CardDescription>
-                    API response time and status
+                    Track how credit scores have changed over time
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-6">
-                  <div className="grid grid-cols-1 gap-4">
-                    {bureauStatus.map((bureau) => (
-                      <div
-                        key={bureau.name}
-                        className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-gray-50 to-blue-50 border border-gray-200"
-                      >
-                        <div className="flex items-center space-x-4">
-                          {getBureauStatusIndicator(
-                            bureau.status,
-                            bureau.color
-                          )}
-                          <div>
-                            <div className="font-semibold text-gray-800">
-                              {bureau.name}
-                            </div>
-                            <div className="text-sm text-gray-600">
-                              {bureau.status} • ⚡ {bureau.responseTime} • 🕐
-                              Updated {bureau.lastUpdate}
-                            </div>
-                          </div>
-                        </div>
-                        <Badge
-                          className={`${
-                            bureau.color === "success"
-                              ? "bg-green-100 text-green-700"
-                              : "bg-yellow-100 text-yellow-700"
-                          } font-medium`}
-                        >
-                          {bureau.color === "success"
-                            ? "✅ Healthy"
-                            : "⚠️ Warning"}
-                        </Badge>
-                      </div>
-                    ))}
+                  <div className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={creditScoreHistory}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="month" />
+                        <YAxis domain={[600, 800]} />
+                        <Tooltip />
+                        <Legend />
+                        <Line
+                          type="monotone"
+                          dataKey="cibil"
+                          stroke="hsl(214 95% 25%)"
+                          name="CIBIL"
+                          strokeWidth={2}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="experian"
+                          stroke="hsl(142 76% 36%)"
+                          name="Experian"
+                          strokeWidth={2}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="equifax"
+                          stroke="hsl(38 92% 50%)"
+                          name="Equifax"
+                          strokeWidth={2}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="crif"
+                          stroke="hsl(272 91% 65%)"
+                          name="CRIF"
+                          strokeWidth={2}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
                   </div>
                 </CardContent>
               </Card>
@@ -1136,52 +1271,80 @@ const BankDashboard = () => {
           </TabsContent>
 
           <TabsContent value="bureau">
-            <Card className="bg-white/80 backdrop-blur-sm border border-gray-200 shadow-xl rounded-xl overflow-hidden">
-              <CardHeader className="bg-gradient-to-r from-gray-50 to-purple-50 border-b border-gray-100">
-                <CardTitle className="flex items-center gap-2 text-gray-800">
-                  <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                  Credit Bureau Status
-                </CardTitle>
-                <CardDescription>
-                  Monitor credit bureau connectivity
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="grid grid-cols-1 gap-4">
-                  {bureauStatus.map((bureau) => (
-                    <div
+            <div className="space-y-6">
+              <Card className="bg-white/80 backdrop-blur-sm border border-gray-200 shadow-xl rounded-xl overflow-hidden">
+                <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-100">
+                  <CardTitle className="flex items-center gap-2 text-gray-800">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                    Credit Score History
+                  </CardTitle>
+                  <CardDescription>
+                    Track how your credit scores have changed over time
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={creditScoreHistory}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="month" />
+                        <YAxis domain={[300, 900]} />
+                        <Tooltip />
+                        <Legend />
+                        <Line
+                          type="monotone"
+                          dataKey="cibil"
+                          stroke="hsl(214 95% 25%)"
+                          name="CIBIL"
+                          strokeWidth={2}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="experian"
+                          stroke="hsl(142 76% 36%)"
+                          name="Experian"
+                          strokeWidth={2}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="equifax"
+                          stroke="hsl(38 92% 50%)"
+                          name="Equifax"
+                          strokeWidth={2}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="crif"
+                          stroke="hsl(272 91% 65%)"
+                          name="CRIF"
+                          strokeWidth={2}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div>
+                <h3 className="text-2xl font-bold text-gray-800 mb-2">Bureau Scores</h3>
+                <p className="text-gray-600 mb-8">Current credit scores from all reporting bureaus.</p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {bureauScores.map((bureau) => (
+                    <BureauScoreSpeedometer
                       key={bureau.name}
-                      className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-gray-50 to-blue-50 border border-gray-200"
-                    >
-                      <div className="flex items-center space-x-4">
-                        {getBureauStatusIndicator(bureau.status, bureau.color)}
-                        <div>
-                          <div className="font-semibold text-gray-800">
-                            {bureau.name}
-                          </div>
-                          <div className="text-sm text-gray-600">
-                            {bureau.status} • ⚡ {bureau.responseTime} • 🕐
-                            Updated {bureau.lastUpdate}
-                          </div>
-                        </div>
-                      </div>
-                      <Badge
-                        className={`${
-                          bureau.color === "success"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-yellow-100 text-yellow-700"
-                        } font-medium`}
-                      >
-                        {bureau.color === "success"
-                          ? "✅ Healthy"
-                          : "⚠️ Warning"}
-                      </Badge>
-                    </div>
+                      bureauName={bureau.name}
+                      score={bureau.score}
+                      range={bureau.range}
+                      peerAverage={bureau.peerAverage}
+                      postAverage={bureau.postAverage}
+                    />
                   ))}
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </TabsContent>
+
           <TabsContent value="calculator">
             <CreditCalculator />
           </TabsContent>
