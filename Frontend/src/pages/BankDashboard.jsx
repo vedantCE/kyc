@@ -59,6 +59,138 @@ import {
   Line,
 } from "recharts";
 
+// 🔹 Utility function for bureau scores
+const generateBureauScores = (id) => {
+  const seed = id.toString().split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+  return [
+    {
+      name: "CIBIL",
+      score: 600 + ((seed * 13) % 300),
+      range: "300 – 900",
+      peerAverage: 50 + (seed % 40),
+      postAverage: 50 + ((seed * 3) % 40),
+    },
+    {
+      name: "Equifax",
+      score: 580 + ((seed * 7) % 320),
+      range: "300 – 900",
+      peerAverage: 50 + ((seed * 5) % 40),
+      postAverage: 50 + ((seed * 2) % 40),
+    },
+    {
+      name: "Experian",
+      score: 590 + ((seed * 11) % 310),
+      range: "300 – 900",
+      peerAverage: 50 + ((seed * 2) % 40),
+      postAverage: 50 + ((seed * 7) % 40),
+    },
+    {
+      name: "CRIF",
+      score: 650 + ((seed * 17) % 349),
+      range: "1 – 999",
+      peerAverage: 50 + ((seed * 4) % 40),
+      postAverage: 50 + ((seed * 6) % 40),
+    },
+  ];
+};
+
+// 🔹 Utility function for credit history
+const generateCreditScoreHistory = (id) => {
+  const seed = id.toString().split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+  const months = ["Sept 2024", "Oct 2024", "Nov 2024", "Dec 2024", "Jan 2025", "Feb 2025"];
+
+  return months.map((month, i) => ({
+    month,
+    CIBIL: 600 + ((seed + i * 17) % 300),
+    Experian: 590 + ((seed + i * 23) % 310),
+    Equifax: 580 + ((seed + i * 31) % 320),
+    CRIF: 650 + ((seed + i * 19) % 349),
+  }));
+};
+
+// ================= ReviewForm Component =================
+const ReviewForm = ({ application, onClose, onConfirm }) => {
+  if (!application) return null;
+
+  const bureauScores = generateBureauScores(application.id);
+  const creditScoreHistory = generateCreditScoreHistory(application.id);
+
+  const handleReviewConfirm = () => {
+    if (onConfirm) {
+      onConfirm(application.id, "Reviewed");
+    }
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-white p-5 rounded-lg w-full max-w-5xl h-auto">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold">Credit Analysis</h3>
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+
+        {/* Layout: Graph + Bureau Scores */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* Credit Score History */}
+          <Card className="p-3 shadow-md rounded-lg h-full">
+            <CardContent className="h-full flex flex-col">
+              <h3 className="text-base font-semibold text-gray-800">Credit Score History</h3>
+              <div className="flex-grow min-h-[280px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={creditScoreHistory}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey="month" stroke="#6b7280" />
+                    <YAxis domain={[300, 900]} stroke="#6b7280" />
+                    <Tooltip />
+                    <Legend verticalAlign="top" height={30} />
+                    <Line type="monotone" dataKey="CIBIL" stroke="#2563eb" strokeWidth={2} />
+                    <Line type="monotone" dataKey="CRIF" stroke="#8b5cf6" strokeWidth={2} />
+                    <Line type="monotone" dataKey="Equifax" stroke="#f59e0b" strokeWidth={2} />
+                    <Line type="monotone" dataKey="Experian" stroke="#10b981" strokeWidth={2} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Bureau Scores */}
+          <Card className="p-3 shadow-md rounded-lg h-full">
+            <CardContent>
+              <h3 className="text-base font-semibold text-gray-800 mb-2">Bureau Scores</h3>
+              <div className="grid grid-cols-2 gap-2">
+                {bureauScores.map((bureau) => (
+                  <BureauScoreSpeedometer
+                    key={bureau.name}
+                    bureauName={bureau.name}
+                    score={bureau.score}
+                    range={bureau.range}
+                    peerAverage={bureau.peerAverage}
+                    postAverage={bureau.postAverage}
+                  />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Review Confirm Button */}
+        <div className="flex justify-end mt-4">
+          <Button
+            onClick={handleReviewConfirm}
+            className="bg-blue-500 hover:bg-blue-600 text-white"
+          >
+            Mark as Reviewed
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
 // Credit Calculator Component
 const CreditCalculator = () => {
   // Credit Calculator state
@@ -305,61 +437,6 @@ const RejectionForm = ({ application, onClose, onConfirm }) => {
   );
 };
 
-// Review Form Component
-const ReviewForm = ({ application, onClose, onConfirm }) => {
-  const [reviewNotes, setReviewNotes] = useState("");
-
-  const handleSubmit = () => {
-    if (reviewNotes.trim()) {
-      onConfirm(application.id, reviewNotes);
-      onClose();
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg w-full max-w-md">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">Review Application</h3>
-          <Button variant="ghost" size="sm" onClick={onClose}>
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-        <p className="text-sm text-gray-600 mb-4">
-          Application ID: <span className="font-medium">{application.id}</span>
-        </p>
-        <p className="text-sm text-gray-600 mb-4">
-          Customer:{" "}
-          <span className="font-medium">{application.customerName}</span>
-        </p>
-        <div className="space-y-4">
-          <div>
-            <label className="text-sm font-medium">Review Notes</label>
-            <Textarea
-              value={reviewNotes}
-              onChange={(e) => setReviewNotes(e.target.value)}
-              placeholder="Add your review notes here..."
-              className="mt-1"
-              rows={4}
-            />
-          </div>
-          <div className="flex justify-end space-x-2">
-            <Button variant="outline" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              className="bg-blue-500 hover:bg-blue-600"
-              disabled={!reviewNotes.trim()}
-            >
-              Submit Review
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 // Success Animation Component
 const SuccessAnimation = ({ message, onClose, isRejection = false }) => {
@@ -387,6 +464,7 @@ const SuccessAnimation = ({ message, onClose, isRejection = false }) => {
     </div>
   );
 };
+
 const BureauScoreSpeedometer = ({ bureauName, score, range, peerAverage, postAverage }) => {
   // Parse min and max from range string (support both – and -)
   const [minScore, maxScore] = range.replace(/–/g, '-').split('-').map(s => Number(s.trim()));
@@ -399,7 +477,6 @@ const BureauScoreSpeedometer = ({ bureauName, score, range, peerAverage, postAve
   const centerX = 100, centerY = 100, radius = 80;
 
   // Calculate needle angle (from 180deg to 0deg)
-  // 180deg (left, min) to 0deg (right, max)
   const angle = 180 - percent * 180;
   const needleLength = radius - 9;
   const rad = (angle * Math.PI) / 180;
@@ -424,18 +501,18 @@ const BureauScoreSpeedometer = ({ bureauName, score, range, peerAverage, postAve
   };
 
   return (
-    <Card className="bg-white/80 backdrop-blur-sm border border-gray-200 shadow-lg rounded-xl p-6">
-      <CardContent className="p-0">
+    <Card className="bg-white border border-gray-200 shadow-md rounded-lg p-3 h-full flex flex-col items-center justify-between">
+      <CardContent className="p-0 w-full">
         {/* Bureau Header */}
-        <div className="text-center mb-6">
-          <h3 className="text-xl font-semibold text-gray-800 mb-2">{bureauName} Score</h3>
-          <div className="text-3xl font-bold text-blue-800">{score}</div>
-          <div className="text-sm text-gray-500 mt-1">Range: {range}</div>
+        <div className="text-center mb-3">
+          <h3 className="text-lg font-semibold text-gray-800">{bureauName} Score</h3>
+          <div className="text-2xl font-bold text-blue-800">{score}</div>
+          <div className="text-xs text-gray-500 mt-1">Range: {range}</div>
         </div>
 
         {/* Semicircular Speedometer */}
-        <div className="flex flex-col items-center mb-6">
-          <svg width="200" height="120" viewBox="0 0 200 120">
+        <div className="flex flex-col items-center mb-3">
+          <svg width="140" height="90" viewBox="0 0 200 120">
             {/* Background arc */}
             <path
               d={describeArc(centerX, centerY, radius, 180, 0)}
@@ -470,50 +547,47 @@ const BureauScoreSpeedometer = ({ bureauName, score, range, peerAverage, postAve
               strokeLinecap="round"
             />
             {/* Needle center circle */}
-            <circle cx={centerX} cy={centerY} r="8" fill="#2563eb" stroke="#fff" strokeWidth="3" />
+            <circle cx={centerX} cy={centerY} r="6" fill="#2563eb" stroke="#fff" strokeWidth="2" />
             {/* Min/Max labels */}
-            <text x={centerX - radius + 10} y={centerY + 20} fontSize="12" fill="#6b7280" textAnchor="start">{minScore}</text>
-            <text x={centerX + radius - 10} y={centerY + 20} fontSize="12" fill="#6b7280" textAnchor="end">{maxScore}</text>
+            <text x={centerX - radius + 10} y={centerY + 20} fontSize="10" fill="#6b7280" textAnchor="start">{minScore}</text>
+            <text x={centerX + radius - 10} y={centerY + 20} fontSize="10" fill="#6b7280" textAnchor="end">{maxScore}</text>
             {/* Poor/Excellent labels */}
-            <text x={centerX - radius + 10} y={centerY + 40} fontSize="12" fill="#ef4444" textAnchor="start">Poor</text>
-            <text x={centerX + radius - 10} y={centerY + 40} fontSize="12" fill="#22c55e" textAnchor="end">Excellent</text>
+            <text x={centerX - radius + 10} y={centerY + 35} fontSize="10" fill="#ef4444" textAnchor="start">Poor</text>
+            <text x={centerX + radius - 10} y={centerY + 35} fontSize="10" fill="#22c55e" textAnchor="end">Excellent</text>
           </svg>
         </div>
 
         {/* Comparison Metrics */}
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-2 gap-4">
           {/* Peer Average */}
           <div className="text-center">
-            <h4 className="text-sm font-medium text-gray-700 mb-3">Peer</h4>
-            <div className="space-y-2">
-              <div className="h-2 bg-gray-200 rounded-full overflow-hidden mx-2">
-                <div
-                  className="h-full bg-blue-500"
-                  style={{ width: `${peerAverage}%` }}
-                ></div>
-              </div>
-              <div className="text-xs text-gray-600">Average {peerAverage}%</div>
+            <h4 className="text-xs font-medium text-gray-700 mb-1">Peer</h4>
+            <div className="h-2 bg-gray-200 rounded-full overflow-hidden mx-1">
+              <div
+                className="h-full bg-blue-500"
+                style={{ width: `${peerAverage}%` }}
+              ></div>
             </div>
+            <div className="text-[10px] text-gray-600">Avg {peerAverage}%</div>
           </div>
 
           {/* Post Average */}
           <div className="text-center">
-            <h4 className="text-sm font-medium text-gray-700 mb-3">Post</h4>
-            <div className="space-y-2">
-              <div className="h-2 bg-gray-200 rounded-full overflow-hidden mx-2">
-                <div
-                  className="h-full bg-green-500"
-                  style={{ width: `${postAverage}%` }}
-                ></div>
-              </div>
-              <div className="text-xs text-gray-600">Average {postAverage}%</div>
+            <h4 className="text-xs font-medium text-gray-700 mb-1">Post</h4>
+            <div className="h-2 bg-gray-200 rounded-full overflow-hidden mx-1">
+              <div
+                className="h-full bg-green-500"
+                style={{ width: `${postAverage}%` }}
+              ></div>
             </div>
+            <div className="text-[10px] text-gray-600">Avg {postAverage}%</div>
           </div>
         </div>
       </CardContent>
     </Card>
   );
 };
+
 
 const BankDashboard = () => {
   const navigate = useNavigate();
@@ -1161,8 +1235,9 @@ const BankDashboard = () => {
                                 Approve
                               </Button>
                               <Button
-                                variant="destructive"
+                                variant="outline"
                                 size="sm"
+                                className="bg-red-500 text-white hover:bg-red-600"
                                 onClick={() => openRejectionForm(app)}
                               >
                                 Reject
