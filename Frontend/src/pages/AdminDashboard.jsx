@@ -43,6 +43,135 @@ import {
   Cell
 } from 'recharts';
 
+// Bureau Score Speedometer Component
+const BureauScoreSpeedometer = ({ bureauName, score, range, peerAverage, postAverage }) => {
+  // Parse min and max from range string (support both – and -)
+  const [minScore, maxScore] = range.replace(/–/g, '-').split('-').map(s => Number(s.trim()));
+
+  // Ensure score is within bounds and calculate percentage
+  const clampedScore = Math.max(minScore, Math.min(maxScore, score));
+  const percent = (clampedScore - minScore) / (maxScore - minScore);
+
+  // SVG semicircle constants
+  const centerX = 100, centerY = 100, radius = 80;
+
+  // Calculate needle angle (from 180deg to 0deg)
+  // 180deg (left, min) to 0deg (right, max)
+  const angle = 180 - percent * 180;
+  const needleLength = radius - 9;
+  const rad = (angle * Math.PI) / 180;
+  const needleX = centerX + needleLength * Math.cos(rad);
+  const needleY = centerY - needleLength * Math.sin(rad);
+
+  // Helper for arc path
+  const describeArc = (x, y, r, startAngle, endAngle) => {
+    const start = {
+      x: x + r * Math.cos((Math.PI * startAngle) / 180),
+      y: y + r * Math.sin((Math.PI * startAngle) / 180),
+    };
+    const end = {
+      x: x + r * Math.cos((Math.PI * endAngle) / 180),
+      y: y + r * Math.sin((Math.PI * endAngle) / 180),
+    };
+    const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+    return [
+      "M", start.x, start.y,
+      "A", r, r, 0, largeArcFlag, 1, end.x, end.y
+    ].join(" ");
+  };
+
+  return (
+    <Card className="bg-white/80 backdrop-blur-sm border border-gray-200 shadow-lg rounded-xl p-4">
+      <CardContent className="p-0">
+        {/* Bureau Header */}
+        <div className="text-center mb-4">
+          <h3 className="text-lg font-semibold text-gray-800 mb-2">{bureauName} Score</h3>
+          <div className="text-3xl font-bold text-blue-800">{score}</div>
+          <div className="text-sm text-gray-500 mt-1">Range: {range}</div>
+        </div>
+
+        {/* Semicircular Speedometer */}
+        <div className="flex flex-col items-center mb-4">
+          <svg width="200" height="120" viewBox="0 0 200 120">
+            {/* Background arc */}
+            <path
+              d={describeArc(centerX, centerY, radius, 180, 0)}
+              fill="none"
+              stroke="#e5e7eb"
+              strokeWidth="18"
+              strokeLinecap="round"
+            />
+            {/* Colored arc with gradient */}
+            <defs>
+              <linearGradient id={`gauge-gradient-${bureauName}`} x1="20" y1="100" x2="180" y2="100" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stopColor="#f87171" />
+                <stop offset="50%" stopColor="#facc15" />
+                <stop offset="100%" stopColor="#22c55e" />
+              </linearGradient>
+            </defs>
+            <path
+              d={describeArc(centerX, centerY, radius, 180, 0)}
+              fill="none"
+              stroke={`url(#gauge-gradient-${bureauName})`}
+              strokeWidth="18"
+              strokeLinecap="round"
+            />
+            {/* Needle */}
+            <line
+              x1={centerX}
+              y1={centerY}
+              x2={needleX}
+              y2={needleY}
+              stroke="#2563eb"
+              strokeWidth="5"
+              strokeLinecap="round"
+            />
+            {/* Needle center circle */}
+            <circle cx={centerX} cy={centerY} r="8" fill="#2563eb" stroke="#fff" strokeWidth="3" />
+            {/* Min/Max labels */}
+            <text x={centerX - radius + 10} y={centerY + 20} fontSize="12" fill="#6b7280" textAnchor="start">{minScore}</text>
+            <text x={centerX + radius - 10} y={centerY + 20} fontSize="12" fill="#6b7280" textAnchor="end">{maxScore}</text>
+            {/* Poor/Excellent labels */}
+            <text x={centerX - radius + 10} y={centerY + 40} fontSize="12" fill="#ef4444" textAnchor="start">Poor</text>
+            <text x={centerX + radius - 10} y={centerY + 40} fontSize="12" fill="#22c55e" textAnchor="end">Excellent</text>
+          </svg>
+        </div>
+
+        {/* Comparison Metrics */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* Peer Average */}
+          <div className="text-center">
+            <h4 className="text-sm font-medium text-gray-700 mb-2">Peer</h4>
+            <div className="space-y-1">
+              <div className="h-2 bg-gray-200 rounded-full overflow-hidden mx-2">
+                <div
+                  className="h-full bg-blue-500"
+                  style={{ width: `${peerAverage}%` }}
+                ></div>
+              </div>
+              <div className="text-xs text-gray-600">Average {peerAverage}%</div>
+            </div>
+          </div>
+
+          {/* Post Average */}
+          <div className="text-center">
+            <h4 className="text-sm font-medium text-gray-700 mb-2">Post</h4>
+            <div className="space-y-1">
+              <div className="h-2 bg-gray-200 rounded-full overflow-hidden mx-2">
+                <div
+                  className="h-full bg-green-500"
+                  style={{ width: `${postAverage}%` }}
+                ></div>
+              </div>
+              <div className="text-xs text-gray-600">Average {postAverage}%</div>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 const AdminDashboard = () => {
   const [searchUser, setSearchUser] = useState("");
   const [searchScore, setSearchScore] = useState("");
@@ -305,11 +434,11 @@ const bankRankings = [
   const getRiskBadge = (risk) => {
     switch (risk) {
       case "Low":
-        return <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">🟢 Low Risk</Badge>;
+        return <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200"> Low Risk</Badge>;
       case "Medium":
-        return <Badge className="bg-blue-100 text-blue-700 border-blue-200">🟡 Medium Risk</Badge>;
+        return <Badge className="bg-yellow-100 text-yellow-700 border-yellow-200"> Medium Risk</Badge>;
       case "High":
-        return <Badge className="bg-slate-100 text-slate-700 border-slate-200">🔴 High Risk</Badge>;
+        return <Badge className="bg-red-100 text-red-700 border-red-200"> High Risk</Badge>;
       default:
         return <Badge variant="outline">{risk}</Badge>;
     }
@@ -318,11 +447,11 @@ const bankRankings = [
   const getStatusBadge = (status) => {
     switch (status) {
       case "Active":
-        return <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">✅ Active</Badge>;
+        return <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200"> Active</Badge>;
       case "Suspended":
-        return <Badge className="bg-slate-100 text-slate-700 border-slate-200">⛔ Suspended</Badge>;
+        return <Badge className="bg-red-100 text-red-700 border-red-200"> Suspended</Badge>;
       case "Pending":
-        return <Badge className="bg-sky-100 text-sky-700 border-sky-200">⏳ Pending</Badge>;
+        return <Badge className="bg-sky-100 text-sky-700 border-sky-200"> Pending</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -331,11 +460,11 @@ const bankRankings = [
   const getMetricBadge = (status) => {
     switch (status) {
       case "success":
-        return <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">✅ Healthy</Badge>;
+        return <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200"> Healthy</Badge>;
       case "warning":
-        return <Badge className="bg-sky-100 text-sky-700 border-sky-200">⚠ Warning</Badge>;
+        return <Badge className="bg-sky-100 text-sky-700 border-sky-200"> Warning</Badge>;
       case "error":
-        return <Badge className="bg-slate-100 text-slate-700 border-slate-200">🚨 Critical</Badge>;
+        return <Badge className="bg-slate-100 text-slate-700 border-slate-200"> Critical</Badge>;
       default:
         return <Badge variant="outline">Unknown</Badge>;
     }
@@ -356,7 +485,7 @@ const bankRankings = [
               </div>
               <div>
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-700 to-blue-900 bg-clip-text text-transparent">
-                  CreditScore Pro
+                  CreditScore 
                 </h1>
                 <Badge className="bg-blue-100 text-blue-700 border-blue-200 mt-1">Admin Portal</Badge>
               </div>
@@ -390,7 +519,7 @@ const bankRankings = [
             <CardContent className="relative">
               <div className="text-3xl font-bold">{totalCustomers.toLocaleString()}</div>
               <p className="text-xs text-blue-100 mt-2">
-                📊 +18% from last month
+                 +18% from last month
               </p>
             </CardContent>
           </Card>
@@ -418,7 +547,7 @@ const bankRankings = [
             <CardContent className="relative">
               <div className="text-3xl font-bold">{websiteVisits.toLocaleString()}</div>
               <p className="text-xs text-sky-100 mt-2">
-                📈 +31% from last month
+                 +31% from last month
               </p>
             </CardContent>
           </Card>
@@ -455,7 +584,7 @@ const bankRankings = [
                       />
                     </div>
                     <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white">
-                      📥 Export Data
+                       Export Data
                     </Button>
                   </div>
                 </div>
@@ -485,9 +614,9 @@ const bankRankings = [
                             </div>
                             <div>
                               <div className="font-medium text-slate-800">{customer.name}</div>
-                              <div className="text-sm text-slate-500">📧 {customer.email}</div>
-                              <div className="text-sm text-slate-500">📱 {customer.phone}</div>
-                              <div className="text-sm text-blue-600">📍 {customer.city}</div>
+                              <div className="text-sm text-slate-500"> {customer.email}</div>
+                              <div className="text-sm text-slate-500"> {customer.phone}</div>
+                              <div className="text-sm text-blue-600"> {customer.city}</div>
                             </div>
                           </div>
                         </TableCell>
@@ -502,18 +631,18 @@ const bankRankings = [
                         <TableCell>{getRiskBadge(customer.riskLevel)}</TableCell>
                         <TableCell>
                           <Badge variant="outline" className="font-semibold border-blue-200 text-blue-700">
-                            💳 {customer.totalLoans}
+                             {customer.totalLoans}
                           </Badge>
                         </TableCell>
                         <TableCell>{getStatusBadge(customer.status)}</TableCell>
-                        <TableCell className="text-slate-600">📅 {customer.joinDate}</TableCell>
+                        <TableCell className="text-slate-600"> {customer.joinDate}</TableCell>
                         <TableCell>
                           <div className="flex space-x-2">
                             <Button variant="outline" size="sm" className="bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100">
-                              👁 View
+                               View
                             </Button>
                             <Button variant="outline" size="sm" className="bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100">
-                              ✏ Edit
+                               Edit
                             </Button>
                           </div>
                         </TableCell>
@@ -543,8 +672,6 @@ const bankRankings = [
                       <TableHead className="font-semibold text-slate-700">Customers</TableHead>
                       <TableHead className="font-semibold text-slate-700">Applications</TableHead>
                       <TableHead className="font-semibold text-slate-700">Approval Rate</TableHead>
-                      <TableHead className="font-semibold text-slate-700">API Calls</TableHead>
-                      <TableHead className="font-semibold text-slate-700">Status</TableHead>
                       <TableHead className="font-semibold text-slate-700">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -558,9 +685,9 @@ const bankRankings = [
                               {bank.name.charAt(0)}
                             </div>
                             <div>
-                              <div className="font-medium text-slate-800">🏦 {bank.name}</div>
-                              <div className="text-sm text-slate-500">📧 {bank.email}</div>
-                              <div className="text-sm text-emerald-600">🕐 Last active: {bank.lastActive}</div>
+                              <div className="font-medium text-slate-800"> {bank.name}</div>
+                              <div className="text-sm text-slate-500"> {bank.email}</div>
+                              <div className="text-sm text-emerald-600"> Last active: {bank.lastActive}</div>
                             </div>
                           </div>
                         </TableCell>
@@ -582,12 +709,6 @@ const bankRankings = [
                             {bank.approvalRate}%
                           </Badge>
                         </TableCell>
-                        <TableCell>
-                          <Badge className="bg-slate-100 text-slate-700 font-semibold">
-                            {bank.apiCalls.toLocaleString()}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{getStatusBadge(bank.status)}</TableCell>
                         <TableCell>
                           <div className="flex space-x-2">
                             <Button variant="outline" size="sm" className="bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100">
@@ -656,70 +777,6 @@ const bankRankings = [
       </CardContent>
     </Card>
 
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-      <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 shadow-lg">
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2 text-blue-800">
-            <TrendingUp className="h-5 w-5" />
-            <span>🏆 Top Performing Banks</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {bankRankings.slice(0, 5).map((bank, index) => (
-              <div key={bank.id} className="flex justify-between items-center p-3 bg-white/60 rounded-lg border border-blue-100">
-                <div className="flex items-center space-x-3">
-                  <div className={`w-8 h-8 flex items-center justify-center rounded-full ${
-                    index === 0 ? 'bg-yellow-100 text-yellow-700' : 
-                    index === 1 ? 'bg-blue-100 text-blue-700' : 
-                    index === 2 ? 'bg-orange-100 text-orange-700' : 'bg-slate-100 text-slate-700'
-                  }`}>
-                    {index + 1}
-                  </div>
-                  <div>
-                    <div className="font-medium">{bank.name}</div>
-                    <div className="text-xs text-slate-500">NPA Ratio: {bank.npaRatio}%</div>
-                  </div>
-                </div>
-                <Badge className="bg-emerald-100 text-emerald-700">
-                  ₹{bank.totalRecovered} Cr
-                </Badge>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200 shadow-lg">
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2 text-slate-800">
-            <Activity className="h-5 w-5" />
-            <span>📈 Recovery Metrics</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg border border-slate-100">
-              <span className="text-sm font-medium">💰 Total Recovered (2020-2024)</span>
-              <Badge className="bg-blue-100 text-blue-700">₹8,742 Cr</Badge>
-            </div>
-            <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg border border-slate-100">
-              <span className="text-sm font-medium">📊 Average Recovery Rate</span>
-              <Badge className="bg-emerald-100 text-emerald-700">78.3%</Badge>
-            </div>
-            <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg border border-slate-100">
-              <span className="text-sm font-medium">📉 Highest NPA Bank</span>
-              <Badge className="bg-red-100 text-red-700">Yes Bank (12.8%)</Badge>
-            </div>
-            <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg border border-slate-100">
-              <span className="text-sm font-medium">📈 Lowest NPA Bank</span>
-              <Badge className="bg-green-100 text-green-700">HDFC (3.2%)</Badge>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-
     <Card className="bg-white/90 backdrop-blur-sm border border-slate-200 shadow-xl rounded-xl overflow-hidden">
       <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-100">
         <CardTitle className="flex items-center gap-2 text-slate-800">
@@ -751,7 +808,7 @@ const bankRankings = [
                     #{index + 1}
                   </Badge>
                 </TableCell>
-                <TableCell className="font-medium text-slate-800">🏦 {bank.name}</TableCell>
+                <TableCell className="font-medium text-slate-800"> {bank.name}</TableCell>
                 <TableCell className="font-semibold text-blue-700">₹{bank.totalRecovered} Cr</TableCell>
                 <TableCell>
                   <Badge className={
@@ -780,6 +837,7 @@ const bankRankings = [
     </Card>
   </div>
 </TabsContent>
+
 <TabsContent value="lookup">
   <div className="space-y-8">
     <Card className="bg-white/90 backdrop-blur-sm border border-slate-200 shadow-xl rounded-xl overflow-hidden">
@@ -805,7 +863,7 @@ const bankRankings = [
         
         {searchUser && filteredByScore.length > 0 && (
           <div className="space-y-8">
-            {/* Credit Score History Chart with 4 lines */}
+            {/* Credit Score History Chart */}
             <div>
               <h3 className="text-lg font-semibold mb-4">Credit Score History</h3>
               <p className="text-sm text-slate-600 mb-4">Track how your credit scores have changed across all bureaus</p>
@@ -833,191 +891,47 @@ const bankRankings = [
               </div>
             </div>
             
-            {/* Bureau Scores - Speedometer Style */}
+            {/* Bureau Scores - Semi-circular Speedometers */}
             <div>
               <h3 className="text-lg font-semibold mb-4">Bureau Scores</h3>
               <p className="text-sm text-slate-600 mb-4">Current credit scores from all reporting bureaus</p>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {/* CIBIL Score */}
-                <Card className="border-slate-200">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="text-lg font-semibold text-slate-800">CIBIL Score</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-center mb-4">
-                      <div className="text-4xl font-bold text-slate-800">{filteredByScore[0].creditScore}</div>
-                      <div className="text-sm text-slate-500 mt-1">Range: 300 - 900</div>
-                    </div>
-                    
-                    {/* Speedometer */}
-                    <div className="relative w-full h-32 mb-4">
-                      {/* Speedometer background */}
-                      <div className="absolute w-full h-16 bg-slate-200 rounded-t-full overflow-hidden"></div>
-                      
-                      {/* Speedometer fill */}
-                      <div 
-                        className="absolute w-full h-16 bg-blue-600 rounded-t-full transform origin-bottom"
-                        style={{ transform: `rotate(${((filteredByScore[0].creditScore - 300) / 600) * 180 - 90}deg)` }}
-                      ></div>
-                      
-                      {/* Needle */}
-                      <div className="absolute bottom-0 left-1/2 w-1 h-16 bg-red-600 transform -translate-x-1/2 origin-bottom"
-                           style={{ transform: `rotate(${((filteredByScore[0].creditScore - 300) / 600) * 180 - 90}deg) translateX(-50%)` }}>
-                        <div className="absolute -top-1 left-1/2 w-3 h-3 bg-red-600 rounded-full transform -translate-x-1/2"></div>
-                      </div>
-                      
-                      {/* Center circle */}
-                      <div className="absolute bottom-0 left-1/2 w-6 h-6 bg-white border-2 border-slate-300 rounded-full transform -translate-x-1/2 translate-y-1/2 z-10"></div>
-                    </div>
-                    
-                    <div className="flex justify-between text-xs text-slate-600 mb-2">
-                      <span>Poor</span>
-                      <span>Average</span>
-                      <span>Excellent</span>
-                    </div>
-                    
-                    <div className="flex justify-between items-center mt-4">
-                      <span className="text-sm font-medium text-slate-700">{Math.round((filteredByScore[0].creditScore - 300) / 6)}%</span>
-                      <span className="text-sm font-medium text-slate-700">900</span>
-                    </div>
-                  </CardContent>
-                </Card>
+                <BureauScoreSpeedometer 
+                  bureauName="CIBIL" 
+                  score={filteredByScore[0].creditScore} 
+                  range="300-900" 
+                  peerAverage={75} 
+                  postAverage={82} 
+                />
                 
                 {/* Experian Score */}
-                <Card className="border-slate-200">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="text-lg font-semibold text-slate-800">Experian Score</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-center mb-4">
-                      <div className="text-4xl font-bold text-slate-800">{filteredByScore[0].creditScore - 17}</div>
-                      <div className="text-sm text-slate-500 mt-1">Range: 300 - 900</div>
-                    </div>
-                    
-                    {/* Speedometer */}
-                    <div className="relative w-full h-32 mb-4">
-                      {/* Speedometer background */}
-                      <div className="absolute w-full h-16 bg-slate-200 rounded-t-full overflow-hidden"></div>
-                      
-                      {/* Speedometer fill */}
-                      <div 
-                        className="absolute w-full h-16 bg-emerald-600 rounded-t-full transform origin-bottom"
-                        style={{ transform: `rotate(${((filteredByScore[0].creditScore - 317) / 600) * 180 - 90}deg)` }}
-                      ></div>
-                      
-                      {/* Needle */}
-                      <div className="absolute bottom-0 left-1/2 w-1 h-16 bg-red-600 transform -translate-x-1/2 origin-bottom"
-                           style={{ transform: `rotate(${((filteredByScore[0].creditScore - 317) / 600) * 180 - 90}deg) translateX(-50%)` }}>
-                        <div className="absolute -top-1 left-1/2 w-3 h-3 bg-red-600 rounded-full transform -translate-x-1/2"></div>
-                      </div>
-                      
-                      {/* Center circle */}
-                      <div className="absolute bottom-0 left-1/2 w-6 h-6 bg-white border-2 border-slate-300 rounded-full transform -translate-x-1/2 translate-y-1/2 z-10"></div>
-                    </div>
-                    
-                    <div className="flex justify-between text-xs text-slate-600 mb-2">
-                      <span>Poor</span>
-                      <span>Average</span>
-                      <span>Excellent</span>
-                    </div>
-                    
-                    <div className="flex justify-between items-center mt-4">
-                      <span className="text-sm font-medium text-slate-700">{Math.round((filteredByScore[0].creditScore - 317) / 6)}%</span>
-                      <span className="text-sm font-medium text-slate-700">900</span>
-                    </div>
-                  </CardContent>
-                </Card>
+                <BureauScoreSpeedometer 
+                  bureauName="Experian" 
+                  score={filteredByScore[0].creditScore - 17} 
+                  range="300-900" 
+                  peerAverage={72} 
+                  postAverage={78} 
+                />
                 
                 {/* Equifax Score */}
-                <Card className="border-slate-200">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="text-lg font-semibold text-slate-800">Equifax Score</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-center mb-4">
-                      <div className="text-4xl font-bold text-slate-800">{filteredByScore[0].creditScore - 8}</div>
-                      <div className="text-sm text-slate-500 mt-1">Range: 300 - 900</div>
-                    </div>
-                    
-                    {/* Speedometer */}
-                    <div className="relative w-full h-32 mb-4">
-                      {/* Speedometer background */}
-                      <div className="absolute w-full h-16 bg-slate-200 rounded-t-full overflow-hidden"></div>
-                      
-                      {/* Speedometer fill */}
-                      <div 
-                        className="absolute w-full h-16 bg-amber-600 rounded-t-full transform origin-bottom"
-                        style={{ transform: `rotate(${((filteredByScore[0].creditScore - 308) / 600) * 180 - 90}deg)` }}
-                      ></div>
-                      
-                      {/* Needle */}
-                      <div className="absolute bottom-0 left-1/2 w-1 h-16 bg-red-600 transform -translate-x-1/2 origin-bottom"
-                           style={{ transform: `rotate(${((filteredByScore[0].creditScore - 308) / 600) * 180 - 90}deg) translateX(-50%)` }}>
-                        <div className="absolute -top-1 left-1/2 w-3 h-3 bg-red-600 rounded-full transform -translate-x-1/2"></div>
-                      </div>
-                      
-                      {/* Center circle */}
-                      <div className="absolute bottom-0 left-1/2 w-6 h-6 bg-white border-2 border-slate-300 rounded-full transform -translate-x-1/2 translate-y-1/2 z-10"></div>
-                    </div>
-                    
-                    <div className="flex justify-between text-xs text-slate-600 mb-2">
-                      <span>Poor</span>
-                      <span>Average</span>
-                      <span>Excellent</span>
-                    </div>
-                    
-                    <div className="flex justify-between items-center mt-4">
-                      <span className="text-sm font-medium text-slate-700">{Math.round((filteredByScore[0].creditScore - 308) / 6)}%</span>
-                      <span className="text-sm font-medium text-slate-700">900</span>
-                    </div>
-                  </CardContent>
-                </Card>
+                <BureauScoreSpeedometer 
+                  bureauName="Equifax" 
+                  score={filteredByScore[0].creditScore - 8} 
+                  range="300-900" 
+                  peerAverage={68} 
+                  postAverage={74} 
+                />
                 
                 {/* CRIF Score */}
-                <Card className="border-slate-200">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="text-lg font-semibold text-slate-800">CRIF Score</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-center mb-4">
-                      <div className="text-4xl font-bold text-slate-800">{filteredByScore[0].creditScore + 22}</div>
-                      <div className="text-sm text-slate-500 mt-1">Range: 1 - 999</div>
-                    </div>
-                    
-                    {/* Speedometer */}
-                    <div className="relative w-full h-32 mb-4">
-                      {/* Speedometer background */}
-                      <div className="absolute w-full h-16 bg-slate-200 rounded-t-full overflow-hidden"></div>
-                      
-                      {/* Speedometer fill */}
-                      <div 
-                        className="absolute w-full h-16 bg-purple-600 rounded-t-full transform origin-bottom"
-                        style={{ transform: `rotate(${((filteredByScore[0].creditScore + 22) / 999) * 180 - 90}deg)` }}
-                      ></div>
-                      
-                      {/* Needle */}
-                      <div className="absolute bottom-0 left-1/2 w-1 h-16 bg-red-600 transform -translate-x-1/2 origin-bottom"
-                           style={{ transform: `rotate(${((filteredByScore[0].creditScore + 22) / 999) * 180 - 90}deg) translateX(-50%)` }}>
-                        <div className="absolute -top-1 left-1/2 w-3 h-3 bg-red-600 rounded-full transform -translate-x-1/2"></div>
-                      </div>
-                      
-                      {/* Center circle */}
-                      <div className="absolute bottom-0 left-1/2 w-6 h-6 bg-white border-2 border-slate-300 rounded-full transform -translate-x-1/2 translate-y-1/2 z-10"></div>
-                    </div>
-                    
-                    <div className="flex justify-between text-xs text-slate-600 mb-2">
-                      <span>Poor</span>
-                      <span>Average</span>
-                      <span>Excellent</span>
-                    </div>
-                    
-                    <div className="flex justify-between items-center mt-4">
-                      <span className="text-sm font-medium text-slate-700">{Math.round((filteredByScore[0].creditScore + 22) / 10)}%</span>
-                      <span className="text-sm font-medium text-slate-700">999</span>
-                    </div>
-                  </CardContent>
-                </Card>
+                <BureauScoreSpeedometer 
+                  bureauName="CRIF" 
+                  score={filteredByScore[0].creditScore + 22} 
+                  range="300-900" 
+                  peerAverage={79} 
+                  postAverage={85} 
+                />
               </div>
               
               <div className="mt-6 p-4 bg-slate-50 rounded-lg">
