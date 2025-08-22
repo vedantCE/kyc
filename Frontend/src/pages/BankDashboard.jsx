@@ -59,61 +59,68 @@ import {
   Line,
 } from "recharts";
 
-// 🔹 Utility function for bureau scores
-const generateBureauScores = (id) => {
+// 🔹 Utility function to generate consistent scores based on application ID
+const generateConsistentScores = (id) => {
   const seed = id.toString().split("").reduce((a, c) => a + c.charCodeAt(0), 0);
-  return [
+  const baseScore = 600 + ((seed * 13) % 300);
+  
+  // Generate consistent bureau scores
+  const bureauScores = [
     {
       name: "CIBIL",
-      score: 600 + ((seed * 13) % 300),
+      score: baseScore,
       range: "300 – 900",
       peerAverage: 50 + (seed % 40),
       postAverage: 50 + ((seed * 3) % 40),
     },
     {
       name: "Equifax",
-      score: 580 + ((seed * 7) % 320),
+      score: baseScore - 20 + ((seed * 7) % 40),
       range: "300 – 900",
       peerAverage: 50 + ((seed * 5) % 40),
       postAverage: 50 + ((seed * 2) % 40),
     },
     {
       name: "Experian",
-      score: 590 + ((seed * 11) % 310),
+      score: baseScore - 10 + ((seed * 11) % 30),
       range: "300 – 900",
       peerAverage: 50 + ((seed * 2) % 40),
       postAverage: 50 + ((seed * 7) % 40),
     },
     {
       name: "CRIF",
-      score: 650 + ((seed * 17) % 349),
+      score: baseScore + 50 + ((seed * 17) % 49),
       range: "1 – 999",
       peerAverage: 50 + ((seed * 4) % 40),
       postAverage: 50 + ((seed * 6) % 40),
     },
   ];
-};
 
-// 🔹 Utility function for credit history
-const generateCreditScoreHistory = (id) => {
-  const seed = id.toString().split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+  // Generate consistent credit score history based on the same base score
   const months = ["Sept 2024", "Oct 2024", "Nov 2024", "Dec 2024", "Jan 2025", "Feb 2025"];
+  const history = months.map((month, i) => {
+    const monthOffset = (i - months.length + 1) * 10;
+    return {
+      month,
+      CIBIL: Math.max(300, Math.min(900, baseScore + monthOffset + ((seed + i * 17) % 20))),
+      Experian: Math.max(300, Math.min(900, baseScore - 10 + monthOffset + ((seed + i * 23) % 20))),
+      Equifax: Math.max(300, Math.min(900, baseScore - 20 + monthOffset + ((seed + i * 31) % 20))),
+      CRIF: Math.max(1, Math.min(999, baseScore + 50 + monthOffset + ((seed + i * 19) % 20))),
+    };
+  });
 
-  return months.map((month, i) => ({
-    month,
-    CIBIL: 600 + ((seed + i * 17) % 300),
-    Experian: 590 + ((seed + i * 23) % 310),
-    Equifax: 580 + ((seed + i * 31) % 320),
-    CRIF: 650 + ((seed + i * 19) % 349),
-  }));
+  return {
+    bureauScores,
+    creditScoreHistory: history,
+    creditScore: baseScore // This will be the main credit score shown in the table
+  };
 };
 
 // ================= ReviewForm Component =================
 const ReviewForm = ({ application, onClose, onConfirm }) => {
   if (!application) return null;
 
-  const bureauScores = generateBureauScores(application.id);
-  const creditScoreHistory = generateCreditScoreHistory(application.id);
+  const { bureauScores, creditScoreHistory } = generateConsistentScores(application.id);
 
   const handleReviewConfirm = () => {
     if (onConfirm) {
@@ -541,6 +548,10 @@ const BureauScoreSpeedometer = ({ bureauName, score, range, peerAverage, postAve
             {/* Poor/Excellent labels */}
             <text x={centerX - radius + 10} y={centerY + 35} fontSize="10" fill="#ef4444" textAnchor="start">Poor</text>
             <text x={centerX + radius - 10} y={centerY + 35} fontSize="10" fill="#22c55e" textAnchor="end">Excellent</text>
+            {/* Current score label */}
+            <text x={centerX} y={centerY + 50} fontSize="10" fill="#2563eb" textAnchor="middle" fontWeight="bold">
+              Score: {score}
+            </text>
           </svg>
         </div>
 
@@ -579,118 +590,123 @@ const BureauScoreSpeedometer = ({ bureauName, score, range, peerAverage, postAve
 const BankDashboard = () => {
   const navigate = useNavigate();
   const [searchUser, setSearchUser] = useState("");
-  const [applications, setApplications] = useState([
-    {
-      id: "LA2024001",
-      customerName: "Rajesh Kumar",
-      loanType: "Personal Loan",
-      amount: "₹5,00,000",
-      creditScore: 742,
-      riskLevel: "Low",
-      status: "Pending",
-      appliedDate: "2024-08-08",
-      customerEmail: "rajesh@example.com",
-    },
-    {
-      id: "LA2024002",
-      customerName: "Priya Sharma",
-      loanType: "Home Loan",
-      amount: "₹25,00,000",
-      creditScore: 789,
-      riskLevel: "Low",
-      status: "Approved",
-      appliedDate: "2024-08-07",
-      customerEmail: "priya@example.com",
-    },
-    {
-      id: "LA2024003",
-      customerName: "Amit Patel",
-      loanType: "Car Loan",
-      amount: "₹8,00,000",
-      creditScore: 658,
-      riskLevel: "Medium",
-      status: "Under Review",
-      appliedDate: "2024-08-08",
-      customerEmail: "amit@example.com",
-    },
-    {
-      id: "LA2024004",
-      customerName: "Sunita Reddy",
-      loanType: "Business Loan",
-      amount: "₹12,00,000",
-      creditScore: 695,
-      riskLevel: "Medium",
-      status: "Approved",
-      appliedDate: "2024-08-06",
-      customerEmail: "sunita@example.com",
-    },
-    {
-      id: "LA2024005",
-      customerName: "Vikash Singh",
-      loanType: "Personal Loan",
-      amount: "₹3,00,000",
-      creditScore: 591,
-      riskLevel: "High",
-      status: "Rejected",
-      appliedDate: "2024-08-05",
-      customerEmail: "vikash@example.com",
-    },
-    {
-      id: "LA2024006",
-      customerName: "Neha Gupta",
-      loanType: "Education Loan",
-      amount: "₹7,50,000",
-      creditScore: 710,
-      riskLevel: "Low",
-      status: "Pending",
-      appliedDate: "2024-08-10",
-      customerEmail: "neha@example.com",
-    },
-    {
-      id: "LA2024007",
-      customerName: "Rahul Malhotra",
-      loanType: "Home Loan",
-      amount: "₹35,00,000",
-      creditScore: 625,
-      riskLevel: "Medium",
-      status: "Under Review",
-      appliedDate: "2024-08-09",
-      customerEmail: "rahul@example.com",
-    },
-    {
-      id: "LA2024008",
-      customerName: "Sanjay Verma",
-      loanType: "Business Loan",
-      amount: "₹18,00,000",
-      creditScore: 680,
-      riskLevel: "Medium",
-      status: "Pending",
-      appliedDate: "2024-08-11",
-      customerEmail: "sanjay@example.com",
-    },
-    {
-      id: "LA2024009",
-      customerName: "Anjali Desai",
-      loanType: "Personal Loan",
-      amount: "₹4,50,000",
-      creditScore: 580,
-      riskLevel: "High",
-      status: "Rejected",
-      appliedDate: "2024-08-07",
-      customerEmail: "anjali@example.com",
-    },
-    {
-      id: "LA2024010",
-      customerName: "Mohammed Khan",
-      loanType: "Car Loan",
-      amount: "₹9,00,000",
-      creditScore: 730,
-      riskLevel: "Low",
-      status: "Approved",
-      appliedDate: "2024-08-12",
-      customerEmail: "mohammed@example.com",
-    },
-  ]);
+  
+  // Generate applications with consistent data
+  const generateApplications = () => {
+    const applicationsData = [
+      {
+        id: "LA2024001",
+        customerName: "Rajesh Kumar",
+        loanType: "Personal Loan",
+        amount: "₹5,00,000",
+        riskLevel: "Low",
+        status: "Pending",
+        appliedDate: "2024-08-08",
+        customerEmail: "rajesh@example.com",
+      },
+      {
+        id: "LA2024002",
+        customerName: "Priya Sharma",
+        loanType: "Home Loan",
+        amount: "₹25,00,000",
+        riskLevel: "Low",
+        status: "Approved",
+        appliedDate: "2024-08-07",
+        customerEmail: "priya@example.com",
+      },
+      {
+        id: "LA2024003",
+        customerName: "Amit Patel",
+        loanType: "Car Loan",
+        amount: "₹8,00,000",
+        riskLevel: "Medium",
+        status: "Under Review",
+        appliedDate: "2024-08-08",
+        customerEmail: "amit@example.com",
+      },
+      {
+        id: "LA2024004",
+        customerName: "Sunita Reddy",
+        loanType: "Business Loan",
+        amount: "₹12,00,000",
+        riskLevel: "Medium",
+        status: "Approved",
+        appliedDate: "2024-08-06",
+        customerEmail: "sunita@example.com",
+      },
+      {
+        id: "LA2024005",
+        customerName: "Vikash Singh",
+        loanType: "Personal Loan",
+        amount: "₹3,00,000",
+        riskLevel: "High",
+        status: "Rejected",
+        appliedDate: "2024-08-05",
+        customerEmail: "vikash@example.com",
+      },
+      {
+        id: "LA2024006",
+        customerName: "Neha Gupta",
+        loanType: "Education Loan",
+        amount: "₹7,50,000",
+        riskLevel: "Low",
+        status: "Pending",
+        appliedDate: "2024-08-10",
+        customerEmail: "neha@example.com",
+      },
+      {
+        id: "LA2024007",
+        customerName: "Rahul Malhotra",
+        loanType: "Home Loan",
+        amount: "₹35,00,000",
+        riskLevel: "Medium",
+        status: "Under Review",
+        appliedDate: "2024-08-09",
+        customerEmail: "rahul@example.com",
+      },
+      {
+        id: "LA2024008",
+        customerName: "Sanjay Verma",
+        loanType: "Business Loan",
+        amount: "₹18,00,000",
+        riskLevel: "Medium",
+        status: "Pending",
+        appliedDate: "2024-08-11",
+        customerEmail: "sanjay@example.com",
+      },
+      {
+        id: "LA2024009",
+        customerName: "Anjali Desai",
+        loanType: "Personal Loan",
+        amount: "₹4,50,000",
+        riskLevel: "High",
+        status: "Rejected",
+        appliedDate: "2024-08-07",
+        customerEmail: "anjali@example.com",
+      },
+      {
+        id: "LA2024010",
+        customerName: "Mohammed Khan",
+        loanType: "Car Loan",
+        amount: "₹9,00,000",
+        riskLevel: "Low",
+        status: "Approved",
+        appliedDate: "2024-08-12",
+        customerEmail: "mohammed@example.com",
+      },
+    ];
+
+    // Add consistent credit scores to each application
+    return applicationsData.map(app => {
+      const { creditScore } = generateConsistentScores(app.id);
+      return {
+        ...app,
+        creditScore
+      };
+    });
+  };
+
+  const [applications, setApplications] = useState(generateApplications());
   const [rejectingApplication, setRejectingApplication] = useState(null);
   const [reviewingApplication, setReviewingApplication] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -713,48 +729,51 @@ const BankDashboard = () => {
     { name: "High Risk", value: 10, color: "hsl(0 84.2% 60.2%)" },
   ];
 
-  // Credit score history data
-  const creditScoreHistory = [
-    { month: "Sept 2024", cibil: 720, experian: 710, equifax: 690, crif: 730 },
-    { month: "Oct 2024", cibil: 730, experian: 715, equifax: 695, crif: 735 },
-    { month: "Nov 2024", cibil: 735, experian: 720, equifax: 700, crif: 740 },
-    { month: "Dec 2024", cibil: 745, experian: 730, equifax: 710, crif: 750 },
-    { month: "Jan 2025", cibil: 750, experian: 735, equifax: 720, crif: 755 },
-    { month: "Feb 2025", cibil: 761, experian: 744, equifax: 734, crif: 764 },
-  ];
+  // Generate consistent credit score history for the dashboard
+  const generateDashboardCreditHistory = () => {
+    const months = ["Sept 2024", "Oct 2024", "Nov 2024", "Dec 2024", "Jan 2025", "Feb 2025"];
+    return months.map((month, i) => ({
+      month,
+      cibil: 720 + i * 8,
+      experian: 710 + i * 7,
+      equifax: 690 + i * 9,
+      crif: 730 + i * 7,
+    }));
+  };
 
-  // Bureau scores data
+  const creditScoreHistory = generateDashboardCreditHistory();
+
+  // Generate consistent bureau scores for the dashboard
   const bureauScores = [
     {
       name: "CIBIL",
-      score: 761,        // Excellent
+      score: 761,
       range: "300 – 900",
       peerAverage: 77,
       postAverage: 72
     },
     {
       name: "Equifax",
-      score: 642,        // ⚠️ Warning Zone (Orange)
+      score: 734,
       range: "300 – 900",
       peerAverage: 58,
       postAverage: 61
     },
     {
       name: "Experian",
-      score: 712,        // Good
+      score: 744,
       range: "300 – 900",
       peerAverage: 70,
-      postAverage: null  // still no post-average
+      postAverage: 68
     },
     {
       name: "CRIF",
-      score: 805,        // Excellent
+      score: 764,
       range: "1 – 999",
       peerAverage: 79,
       postAverage: 82
     },
   ];
-
 
   const monthlyData = [
     { month: "Jan", applications: 180, approvals: 132 },
