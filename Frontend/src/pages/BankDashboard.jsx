@@ -193,29 +193,25 @@ const ReviewForm = ({ application, onClose, onConfirm }) => {
 
 // Credit Calculator Component
 const CreditCalculator = () => {
-  // Credit Calculator state
   const [calcLoanAmount, setCalcLoanAmount] = useState("");
   const [calcCreditScore, setCalcCreditScore] = useState("");
   const [calcIncome, setCalcIncome] = useState("");
 
-  // Helper to parse numbers from comma-separated strings
   const parseNum = (v) => {
     const n = Number((v || "").toString().replace(/,/g, ""));
     return isNaN(n) ? 0 : n;
   };
 
-  // Multiplier logic based on credit score
   const getMultiplier = (score) => {
     if (score < 300) return 0;
     const s = Math.max(300, Math.min(850, score));
-    const base = 0.1; // minimum 10% of yearly income
-    const max = 0.6; // maximum 60% of yearly income
+    const base = 0.1;
+    const max = 0.6;
     if (s < 600) return base;
-    const scaled = (s - 600) / (850 - 600); // 0..1 between 600-850
+    const scaled = (s - 600) / (850 - 600);
     return base + Math.max(0, Math.min(1, scaled)) * (max - base);
   };
 
-  // Estimate approved loan amount
   const estimateApproved = () => {
     const loan = parseNum(calcLoanAmount);
     const score = parseNum(calcCreditScore);
@@ -224,7 +220,7 @@ const CreditCalculator = () => {
     return Math.max(0, Math.min(loan || 0, Math.floor(cap)));
   };
 
-  // Format number as INR currency
+  // ✅ Keep INR formatting consistent
   const formatINR = (n) =>
     new Intl.NumberFormat("en-IN", {
       style: "currency",
@@ -235,64 +231,55 @@ const CreditCalculator = () => {
   const approvedAmount = estimateApproved();
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-2xl p-8 border border-blue-200/50">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="space-y-3">
-            <label className="text-sm font-semibold text-gray-700 dark:text-gray-200 flex items-center gap-2">
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              Loan Amount
-            </label>
-            <Input
-              type="text"
-              value={calcLoanAmount}
-              onChange={(e) => setCalcLoanAmount(e.target.value)}
-              placeholder="₹ Enter desired loan"
-              className="bg-white/80 backdrop-blur-sm border-blue-200 focus:border-blue-400 transition-all duration-200 text-lg font-medium"
-            />
-          </div>
+    <div className="max-w-md mx-auto space-y-4 p-6 bg-white rounded-lg border border-blue-200">
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-blue-800">
+          Loan Amount:
+        </label>
+        <Input
+          type="text"
+          value={calcLoanAmount}
+          onChange={(e) => setCalcLoanAmount(e.target.value)}
+          placeholder="Enter desired loan"
+          className="border-blue-300 focus:border-blue-500 focus:ring-blue-500"
+        />
+      </div>
 
-          <div className="space-y-3">
-            <label className="text-sm font-semibold text-gray-700 dark:text-gray-200 flex items-center gap-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              Credit Score
-            </label>
-            <Input
-              type="text"
-              value={calcCreditScore}
-              onChange={(e) => setCalcCreditScore(e.target.value)}
-              placeholder="300 - 850"
-              className="bg-white/80 backdrop-blur-sm border-blue-200 focus:border-blue-400 transition-all duration-200 text-lg font-medium"
-            />
-          </div>
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-blue-800">
+          Credit Score:
+        </label>
+        <Input
+          type="text"
+          value={calcCreditScore}
+          onChange={(e) => setCalcCreditScore(e.target.value)}
+          placeholder="Enter credit score"
+          className="border-blue-300 focus:border-blue-500 focus:ring-blue-500"
+        />
+      </div>
 
-          <div className="space-y-3">
-            <label className="text-sm font-semibold text-gray-700 dark:text-gray-200 flex items-center gap-2">
-              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-              Yearly Income
-            </label>
-            <Input
-              type="text"
-              value={calcIncome}
-              onChange={(e) => setCalcIncome(e.target.value)}
-              placeholder="₹ Annual income"
-              className="bg-white/80 backdrop-blur-sm border-blue-200 focus:border-blue-400 transition-all duration-200 text-lg font-medium"
-            />
-          </div>
-        </div>
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-blue-800">
+          Yearly Income:
+        </label>
+        <Input
+          type="text"
+          value={calcIncome}
+          onChange={(e) => setCalcIncome(e.target.value)}
+          placeholder="Enter annual income"
+          className="border-blue-300 focus:border-blue-500 focus:ring-blue-500"
+        />
+      </div>
 
-        <div className="bg-gradient-to-r from-emerald-500 to-blue-600 rounded-xl p-6 text-center">
-          <h3 className="text-white text-sm font-medium mb-2 opacity-90">
-            Estimated Loan Approval
-          </h3>
-          <div className="text-white text-3xl font-bold">
-            {formatINR(approvedAmount)}
-          </div>
-        </div>
+      <div className="pt-4 border-t border-blue-300">
+        <h3 className="text-lg font-semibold text-center text-blue-800 bg-white py-3 px-4 rounded-lg shadow-sm border border-blue-200">
+          Estimated Approval: {formatINR(approvedAmount)}
+        </h3>
       </div>
     </div>
   );
 };
+
 
 // Rejection Form Component
 const RejectionForm = ({ application, onClose, onConfirm }) => {
