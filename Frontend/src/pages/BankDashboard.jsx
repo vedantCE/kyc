@@ -729,20 +729,6 @@ const BankDashboard = () => {
     { name: "High Risk", value: 10, color: "hsl(0 84.2% 60.2%)" },
   ];
 
-  // Generate consistent credit score history for the dashboard
-  const generateDashboardCreditHistory = () => {
-    const months = ["Sept 2024", "Oct 2024", "Nov 2024", "Dec 2024", "Jan 2025", "Feb 2025"];
-    return months.map((month, i) => ({
-      month,
-      cibil: 720 + i * 8,
-      experian: 710 + i * 7,
-      equifax: 690 + i * 9,
-      crif: 730 + i * 7,
-    }));
-  };
-
-  const creditScoreHistory = generateDashboardCreditHistory();
-
   // Generate consistent bureau scores for the dashboard
   const bureauScores = [
     {
@@ -773,6 +759,18 @@ const BankDashboard = () => {
       peerAverage: 79,
       postAverage: 82
     },
+  ];
+
+  // Generate consistent credit score history for the dashboard
+  // Ensure the last data point matches the bureau scores
+  const creditScoreHistory = [
+    { month: "Sept 2024", cibil: 720, experian: 710, equifax: 690, crif: 730 },
+    { month: "Oct 2024", cibil: 728, experian: 717, equifax: 699, crif: 737 },
+    { month: "Nov 2024", cibil: 736, experian: 724, equifax: 708, crif: 744 },
+    { month: "Dec 2024", cibil: 744, experian: 731, equifax: 717, crif: 751 },
+    { month: "Jan 2025", cibil: 752, experian: 738, equifax: 726, crif: 758 },
+    { month: "Feb 2025", cibil: bureauScores[0].score, experian: bureauScores[2].score, 
+      equifax: bureauScores[1].score, crif: bureauScores[3].score },
   ];
 
   const monthlyData = [
