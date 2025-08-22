@@ -239,9 +239,8 @@ const RejectionForm = ({ application, onClose, onConfirm }) => {
                 {rejectionReason || "Select a reason"}
               </span>
               <svg
-                className={`h-4 w-4 transition-transform ${
-                  showDropdown ? "rotate-180" : ""
-                }`}
+                className={`h-4 w-4 transition-transform ${showDropdown ? "rotate-180" : ""
+                  }`}
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -368,9 +367,8 @@ const SuccessAnimation = ({ message, onClose, isRejection = false }) => {
     <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="bg-white p-8 rounded-lg text-center max-w-md shadow-xl border border-gray-200">
         <div
-          className={`w-16 h-16 ${
-            isRejection ? "bg-red-100" : "bg-green-100"
-          } rounded-full flex items-center justify-center mx-auto mb-4`}
+          className={`w-16 h-16 ${isRejection ? "bg-red-100" : "bg-green-100"
+            } rounded-full flex items-center justify-center mx-auto mb-4`}
         >
           {isRejection ? (
             <XCircle className="h-8 w-8 text-red-600" />
@@ -389,86 +387,126 @@ const SuccessAnimation = ({ message, onClose, isRejection = false }) => {
     </div>
   );
 };
-
-// Bureau Score Speedometer Component
 const BureauScoreSpeedometer = ({ bureauName, score, range, peerAverage, postAverage }) => {
-  const [minScore, maxScore] = range.split(" - ").map(Number);
-  const percentage = ((score - minScore) / (maxScore - minScore)) * 100;
-  
-  const getNeedleRotation = (percentage) => {
-    // Inverted speedometer ranges from 135deg to -135deg (270deg total)
-    return 135 - (percentage * 270 / 100);
-  };
+  // Parse min and max from range string (support both – and -)
+  const [minScore, maxScore] = range.replace(/–/g, '-').split('-').map(s => Number(s.trim()));
 
-  const getScoreColor = (percentage) => {
-    if (percentage >= 80) return "text-green-600";
-    if (percentage >= 60) return "text-yellow-600";
-    return "text-red-600";
-  };
+  // Ensure score is within bounds and calculate percentage
+  const clampedScore = Math.max(minScore, Math.min(maxScore, score));
+  const percent = (clampedScore - minScore) / (maxScore - minScore);
 
-  const getGradientColor = (percentage) => {
-    if (percentage >= 80) return "from-green-500 to-green-700";
-    if (percentage >= 60) return "from-yellow-500 to-yellow-700";
-    return "from-red-500 to-red-700";
+  // SVG semicircle constants
+  const centerX = 100, centerY = 100, radius = 80;
+
+  // Calculate needle angle (from 180deg to 0deg)
+  // 180deg (left, min) to 0deg (right, max)
+  const angle = 180 - percent * 180;
+  const needleLength = radius - 9;
+  const rad = (angle * Math.PI) / 180;
+  const needleX = centerX + needleLength * Math.cos(rad);
+  const needleY = centerY - needleLength * Math.sin(rad);
+
+  // Helper for arc path
+  const describeArc = (x, y, r, startAngle, endAngle) => {
+    const start = {
+      x: x + r * Math.cos((Math.PI * startAngle) / 180),
+      y: y + r * Math.sin((Math.PI * startAngle) / 180),
+    };
+    const end = {
+      x: x + r * Math.cos((Math.PI * endAngle) / 180),
+      y: y + r * Math.sin((Math.PI * endAngle) / 180),
+    };
+    const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+    return [
+      "M", start.x, start.y,
+      "A", r, r, 0, largeArcFlag, 1, end.x, end.y
+    ].join(" ");
   };
 
   return (
-    <Card className="bg-white/80 backdrop-blur-sm border border-gray-200 shadow-lg rounded-xl p-4 h-full">
-      <CardContent className="flex flex-col items-center p-0">
-        {/* Bureau Name */}
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">{bureauName} Score</h3>
-        
-        {/* Score Display */}
-        <div className={`text-4xl font-bold ${getScoreColor(percentage)} mb-2`}>
-          {score}
+    <Card className="bg-white/80 backdrop-blur-sm border border-gray-200 shadow-lg rounded-xl p-6">
+      <CardContent className="p-0">
+        {/* Bureau Header */}
+        <div className="text-center mb-6">
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">{bureauName} Score</h3>
+          <div className="text-3xl font-bold text-blue-800">{score}</div>
+          <div className="text-sm text-gray-500 mt-1">Range: {range}</div>
         </div>
-        
-        {/* Range */}
-        <div className="text-sm text-gray-500 mb-4">Range: {range}</div>
-        
-        {/* Inverted Speedometer */}
-        <div className="relative w-40 h-20 mb-4">
-          {/* Speedometer background */}
-          <div className="absolute w-40 h-20 overflow-hidden">
-            <div className="w-40 h-40 rounded-full border-8 border-gray-200 absolute -top-20"></div>
-          </div>
-          
-          {/* Colored arc (inverted) */}
-          <div className="absolute w-40 h-20 overflow-hidden">
-            <div className={`w-40 h-40 rounded-full border-8 bg-gradient-to-r ${getGradientColor(percentage)} absolute -top-20`} 
-                 style={{ clipPath: 'polygon(0% 0%, 100% 0%, 100% 50%, 0% 50%)' }}></div>
-          </div>
-          
-          {/* Needle (inverted) */}
-          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-1 h-20 bg-gray-800 rounded-full origin-top"
-               style={{ transform: `translateX(-50%) rotate(${getNeedleRotation(percentage)}deg)` }}>
-            <div className="absolute w-3 h-3 bg-gray-800 rounded-full -bottom-1.5 -left-1"></div>
-          </div>
-          
-          {/* Center circle */}
-          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-gray-800 rounded-full z-10"></div>
-          
-          {/* Labels (inverted) */}
-          <div className="absolute top-2 left-4 text-xs text-gray-600">{minScore}</div>
-          <div className="absolute top-2 right-4 text-xs text-gray-600">{maxScore}</div>
+
+        {/* Semicircular Speedometer */}
+        <div className="flex flex-col items-center mb-6">
+          <svg width="200" height="120" viewBox="0 0 200 120">
+            {/* Background arc */}
+            <path
+              d={describeArc(centerX, centerY, radius, 180, 0)}
+              fill="none"
+              stroke="#e5e7eb"
+              strokeWidth="18"
+              strokeLinecap="round"
+            />
+            {/* Colored arc with gradient */}
+            <defs>
+              <linearGradient id="gauge-gradient" x1="20" y1="100" x2="180" y2="100" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stopColor="#f87171" />
+                <stop offset="50%" stopColor="#facc15" />
+                <stop offset="100%" stopColor="#22c55e" />
+              </linearGradient>
+            </defs>
+            <path
+              d={describeArc(centerX, centerY, radius, 180, 0)}
+              fill="none"
+              stroke="url(#gauge-gradient)"
+              strokeWidth="18"
+              strokeLinecap="round"
+            />
+            {/* Needle */}
+            <line
+              x1={centerX}
+              y1={centerY}
+              x2={needleX}
+              y2={needleY}
+              stroke="#2563eb"
+              strokeWidth="5"
+              strokeLinecap="round"
+            />
+            {/* Needle center circle */}
+            <circle cx={centerX} cy={centerY} r="8" fill="#2563eb" stroke="#fff" strokeWidth="3" />
+            {/* Min/Max labels */}
+            <text x={centerX - radius + 10} y={centerY + 20} fontSize="12" fill="#6b7280" textAnchor="start">{minScore}</text>
+            <text x={centerX + radius - 10} y={centerY + 20} fontSize="12" fill="#6b7280" textAnchor="end">{maxScore}</text>
+            {/* Poor/Excellent labels */}
+            <text x={centerX - radius + 10} y={centerY + 40} fontSize="12" fill="#ef4444" textAnchor="start">Poor</text>
+            <text x={centerX + radius - 10} y={centerY + 40} fontSize="12" fill="#22c55e" textAnchor="end">Excellent</text>
+          </svg>
         </div>
-        
-        {/* Comparison metrics */}
-        <div className="w-full space-y-3 mt-2">
+
+        {/* Comparison Metrics */}
+        <div className="grid grid-cols-2 gap-6">
+          {/* Peer Average */}
           <div className="text-center">
-            <div className="text-sm text-gray-600 mb-1">Excellent: {maxScore}</div>
-          </div>
-          
-          <div>
-            <div className="flex justify-between text-xs mb-1">
-              <span className="text-gray-600">Post Avg:</span>
-              <span className="font-medium">{postAverage}%</span>
+            <h4 className="text-sm font-medium text-gray-700 mb-3">Peer</h4>
+            <div className="space-y-2">
+              <div className="h-2 bg-gray-200 rounded-full overflow-hidden mx-2">
+                <div
+                  className="h-full bg-blue-500"
+                  style={{ width: `${peerAverage}%` }}
+                ></div>
+              </div>
+              <div className="text-xs text-gray-600">Average {peerAverage}%</div>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
-                className={`h-2 rounded-full ${getScoreColor(postAverage)}`} 
-                style={{ width: `${postAverage}%` }}
-              ></div>
+          </div>
+
+          {/* Post Average */}
+          <div className="text-center">
+            <h4 className="text-sm font-medium text-gray-700 mb-3">Post</h4>
+            <div className="space-y-2">
+              <div className="h-2 bg-gray-200 rounded-full overflow-hidden mx-2">
+                <div
+                  className="h-full bg-green-500"
+                  style={{ width: `${postAverage}%` }}
+                ></div>
+              </div>
+              <div className="text-xs text-gray-600">Average {postAverage}%</div>
             </div>
           </div>
         </div>
@@ -626,35 +664,36 @@ const BankDashboard = () => {
 
   // Bureau scores data
   const bureauScores = [
-    { 
-      name: "CIBIL", 
-      score: 761, 
-      range: "300 - 900", 
-      peerAverage: 77, 
-      postAverage: 72 
+    {
+      name: "CIBIL",
+      score: 761,        // Excellent
+      range: "300 – 900",
+      peerAverage: 77,
+      postAverage: 72
     },
-    { 
-      name: "Experian", 
-      score: 744, 
-      range: "300 - 900", 
-      peerAverage: 74, 
-      postAverage: 76 
+    {
+      name: "Equifax",
+      score: 642,        // ⚠️ Warning Zone (Orange)
+      range: "300 – 900",
+      peerAverage: 58,
+      postAverage: 61
     },
-    { 
-      name: "Equifax", 
-      score: 734, 
-      range: "300 - 900", 
-      peerAverage: 77, 
-      postAverage: 72 
+    {
+      name: "Experian",
+      score: 712,        // Good
+      range: "300 – 900",
+      peerAverage: 70,
+      postAverage: null  // still no post-average
     },
-    { 
-      name: "CRIF", 
-      score: 764, 
-      range: "1 - 999", 
-      peerAverage: 75, 
-      postAverage: 78 
+    {
+      name: "CRIF",
+      score: 805,        // Excellent
+      range: "1 – 999",
+      peerAverage: 79,
+      postAverage: 82
     },
   ];
+
 
   const monthlyData = [
     { month: "Jan", applications: 180, approvals: 132 },
@@ -1089,13 +1128,12 @@ const BankDashboard = () => {
                           </TableCell>
                           <TableCell>
                             <Badge
-                              className={`${
-                                app.creditScore >= 750
-                                  ? "bg-green-100 text-green-700"
-                                  : app.creditScore >= 650
+                              className={`${app.creditScore >= 750
+                                ? "bg-green-100 text-green-700"
+                                : app.creditScore >= 650
                                   ? "bg-yellow-100 text-yellow-700"
                                   : "bg-red-100 text-red-700"
-                              } font-bold`}
+                                } font-bold`}
                             >
                               {app.creditScore}
                             </Badge>
@@ -1235,9 +1273,9 @@ const BankDashboard = () => {
           <TabsContent value="bureau">
             <div className="space-y-6">
               <Card className="bg-white/80 backdrop-blur-sm border border-gray-200 shadow-xl rounded-xl overflow-hidden">
-                <CardHeader className="bg-gradient-to-r from-gray-50 to-purple-50 border-b border-gray-100">
+                <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-100">
                   <CardTitle className="flex items-center gap-2 text-gray-800">
-                    <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
                     Credit Score History
                   </CardTitle>
                   <CardDescription>
@@ -1250,7 +1288,7 @@ const BankDashboard = () => {
                       <LineChart data={creditScoreHistory}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="month" />
-                        <YAxis domain={[600, 800]} />
+                        <YAxis domain={[300, 900]} />
                         <Tooltip />
                         <Legend />
                         <Line
@@ -1286,12 +1324,12 @@ const BankDashboard = () => {
                   </div>
                 </CardContent>
               </Card>
-                              
+
               <div>
-                <h3 className="text-lg font-semibold mb-4">Bureau Scores</h3>
-                <p className="text-gray-600 mb-6">Current credit scores from all reporting bureaus</p>
-                              
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <h3 className="text-2xl font-bold text-gray-800 mb-2">Bureau Scores</h3>
+                <p className="text-gray-600 mb-8">Current credit scores from all reporting bureaus.</p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {bureauScores.map((bureau) => (
                     <BureauScoreSpeedometer
                       key={bureau.name}
@@ -1306,7 +1344,7 @@ const BankDashboard = () => {
               </div>
             </div>
           </TabsContent>
-          
+
           <TabsContent value="calculator">
             <CreditCalculator />
           </TabsContent>
