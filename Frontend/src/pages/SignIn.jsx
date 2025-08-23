@@ -155,7 +155,16 @@ const SignIn = () => {
               </Button>
             </form>
 
-            <div className="mt-7 text-center">
+            <div className="mt-6 p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <h4 className="text-sm font-medium text-blue-700 mb-2">Test Credentials:</h4>
+              <div className="text-xs text-blue-600 space-y-1">
+                <div><strong>User:</strong> user@gmail.com / user123</div>
+                <div><strong>Admin:</strong> admin@admin.com / admin123</div>
+                <div><strong>Bank:</strong> bank@bank.com / bank123</div>
+              </div>
+            </div>
+
+            <div className="mt-4 text-center">
               <p className="text-sm text-gray-600">
                 Don't have an account?{" "}
                 <Link to="/signup" className="text-blue-600 hover:underline">
@@ -163,7 +172,6 @@ const SignIn = () => {
                 </Link>
               </p>
             </div>
-
 
           </CardContent>
         </Card>
