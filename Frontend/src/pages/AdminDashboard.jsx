@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
@@ -43,145 +43,14 @@ import {
   Cell
 } from 'recharts';
 
-// Bureau Score Speedometer Component
-const BureauScoreSpeedometer = ({ bureauName, score, range, peerAverage, postAverage }) => {
-  // Parse min and max from range string (support both – and -)
-  const [minScore, maxScore] = range.replace(/–/g, '-').split('-').map(s => Number(s.trim()));
-
-  // Ensure score is within bounds and calculate percentage
-  const clampedScore = Math.max(minScore, Math.min(maxScore, score));
-  const percent = (clampedScore - minScore) / (maxScore - minScore);
-
-  // SVG semicircle constants
-  const centerX = 100, centerY = 100, radius = 80;
-
-  // Calculate needle angle (from 180deg to 0deg)
-  // 180deg (left, min) to 0deg (right, max)
-  const angle = 180 - percent * 180;
-  const needleLength = radius - 9;
-  const rad = (angle * Math.PI) / 180;
-  const needleX = centerX + needleLength * Math.cos(rad);
-  const needleY = centerY - needleLength * Math.sin(rad);
-
-  // Helper for arc path
-  const describeArc = (x, y, r, startAngle, endAngle) => {
-    const start = {
-      x: x + r * Math.cos((Math.PI * startAngle) / 180),
-      y: y + r * Math.sin((Math.PI * startAngle) / 180),
-    };
-    const end = {
-      x: x + r * Math.cos((Math.PI * endAngle) / 180),
-      y: y + r * Math.sin((Math.PI * endAngle) / 180),
-    };
-    const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
-    return [
-      "M", start.x, start.y,
-      "A", r, r, 0, largeArcFlag, 1, end.x, end.y
-    ].join(" ");
-  };
-
-  return (
-    <Card className="bg-white/80 backdrop-blur-sm border border-gray-200 shadow-lg rounded-xl p-4">
-      <CardContent className="p-0">
-        {/* Bureau Header */}
-        <div className="text-center mb-4">
-          <h3 className="text-lg font-semibold text-gray-800 mb-2">{bureauName} Score</h3>
-          <div className="text-3xl font-bold text-blue-800">{score}</div>
-          <div className="text-sm text-gray-500 mt-1">Range: {range}</div>
-        </div>
-
-        {/* Semicircular Speedometer */}
-        <div className="flex flex-col items-center mb-4">
-          <svg width="200" height="120" viewBox="0 0 200 120">
-            {/* Background arc */}
-            <path
-              d={describeArc(centerX, centerY, radius, 180, 0)}
-              fill="none"
-              stroke="#e5e7eb"
-              strokeWidth="18"
-              strokeLinecap="round"
-            />
-            {/* Colored arc with gradient */}
-            <defs>
-              <linearGradient id={`gauge-gradient-${bureauName}`} x1="20" y1="100" x2="180" y2="100" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stopColor="#f87171" />
-                <stop offset="50%" stopColor="#facc15" />
-                <stop offset="100%" stopColor="#22c55e" />
-              </linearGradient>
-            </defs>
-            <path
-              d={describeArc(centerX, centerY, radius, 180, 0)}
-              fill="none"
-              stroke={`url(#gauge-gradient-${bureauName})`}
-              strokeWidth="18"
-              strokeLinecap="round"
-            />
-            {/* Needle */}
-            <line
-              x1={centerX}
-              y1={centerY}
-              x2={needleX}
-              y2={needleY}
-              stroke="#2563eb"
-              strokeWidth="5"
-              strokeLinecap="round"
-            />
-            {/* Needle center circle */}
-            <circle cx={centerX} cy={centerY} r="8" fill="#2563eb" stroke="#fff" strokeWidth="3" />
-            {/* Min/Max labels */}
-            <text x={centerX - radius + 10} y={centerY + 20} fontSize="12" fill="#6b7280" textAnchor="start">{minScore}</text>
-            <text x={centerX + radius - 10} y={centerY + 20} fontSize="12" fill="#6b7280" textAnchor="end">{maxScore}</text>
-            {/* Poor/Excellent labels */}
-            <text x={centerX - radius + 10} y={centerY + 40} fontSize="12" fill="#ef4444" textAnchor="start">Poor</text>
-            <text x={centerX + radius - 10} y={centerY + 40} fontSize="12" fill="#22c55e" textAnchor="end">Excellent</text>
-          </svg>
-        </div>
-
-        {/* Comparison Metrics */}
-        <div className="grid grid-cols-2 gap-4">
-          {/* Peer Average */}
-          <div className="text-center">
-            <h4 className="text-sm font-medium text-gray-700 mb-2">Peer</h4>
-            <div className="space-y-1">
-              <div className="h-2 bg-gray-200 rounded-full overflow-hidden mx-2">
-                <div
-                  className="h-full bg-blue-500"
-                  style={{ width: `${peerAverage}%` }}
-                ></div>
-              </div>
-              <div className="text-xs text-gray-600">Average {peerAverage}%</div>
-            </div>
-          </div>
-
-          {/* Post Average */}
-          <div className="text-center">
-            <h4 className="text-sm font-medium text-gray-700 mb-2">Post</h4>
-            <div className="space-y-1">
-              <div className="h-2 bg-gray-200 rounded-full overflow-hidden mx-2">
-                <div
-                  className="h-full bg-green-500"
-                  style={{ width: `${postAverage}%` }}
-                ></div>
-              </div>
-              <div className="text-xs text-gray-600">Average {postAverage}%</div>
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
+import AnimatedSpeedometer from "@/components/AnimatedSpeedometer";
 
 const AdminDashboard = () => {
   const [searchUser, setSearchUser] = useState("");
   const [searchScore, setSearchScore] = useState("");
-  const adminEmail = "admin@demo.com";
+  const adminEmail = localStorage.getItem("userEmail") || "admin@demo.com";
   
   // Mock admin data
-  const totalCustomers = 45267;
-  const totalLoansApproved = 8934;
-  const websiteVisits = 127543;
-
   const customers = [
     {
       id: "USR001",
@@ -256,6 +125,11 @@ const AdminDashboard = () => {
       city: "Pune"
     }
   ];
+
+  const totalCustomers = 45267;
+  const totalLoansApproved = 8934;
+  const websiteVisits = 127543;
+  const totalApplications = customers.length; // Dynamic count based on customer data
 
   const banks = [
     {
@@ -531,7 +405,7 @@ const bankRankings = [
               <CheckCircle className="h-6 w-6 text-emerald-200" />
             </CardHeader>
             <CardContent className="relative">
-              <div className="text-3xl font-bold">{totalLoansApproved.toLocaleString()}</div>
+              <div className="text-3xl font-bold">{totalApplications.toLocaleString()}</div>
               <p className="text-xs text-emerald-100 mt-2">
                  +23% from last month
               </p>
@@ -870,12 +744,12 @@ const bankRankings = [
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={[
-                    { month: 'Jan', cibil: filteredByScore[0].creditScore - 50, experian: filteredByScore[0].creditScore - 67, equifax: filteredByScore[0].creditScore - 58, crif: filteredByScore[0].creditScore - 28 },
-                    { month: 'Feb', cibil: filteredByScore[0].creditScore - 30, experian: filteredByScore[0].creditScore - 47, equifax: filteredByScore[0].creditScore - 38, crif: filteredByScore[0].creditScore - 8 },
-                    { month: 'Mar', cibil: filteredByScore[0].creditScore - 20, experian: filteredByScore[0].creditScore - 37, equifax: filteredByScore[0].creditScore - 28, crif: filteredByScore[0].creditScore + 2 },
-                    { month: 'Apr', cibil: filteredByScore[0].creditScore - 10, experian: filteredByScore[0].creditScore - 27, equifax: filteredByScore[0].creditScore - 18, crif: filteredByScore[0].creditScore + 12 },
-                    { month: 'May', cibil: filteredByScore[0].creditScore, experian: filteredByScore[0].creditScore - 17, equifax: filteredByScore[0].creditScore - 8, crif: filteredByScore[0].creditScore + 22 },
-                    { month: 'Jun', cibil: filteredByScore[0].creditScore + 5, experian: filteredByScore[0].creditScore - 12, equifax: filteredByScore[0].creditScore - 3, crif: filteredByScore[0].creditScore + 27 },
+                    { month: 'Jan', cibil: filteredByScore[0].creditScore - 50, experian: filteredByScore[0].creditScore - 34, equifax: filteredByScore[0].creditScore - 25, crif: filteredByScore[0].creditScore + 5 },
+                    { month: 'Feb', cibil: filteredByScore[0].creditScore - 30, experian: filteredByScore[0].creditScore - 24, equifax: filteredByScore[0].creditScore - 18, crif: filteredByScore[0].creditScore + 12 },
+                    { month: 'Mar', cibil: filteredByScore[0].creditScore - 20, experian: filteredByScore[0].creditScore - 19, equifax: filteredByScore[0].creditScore - 12, crif: filteredByScore[0].creditScore + 18 },
+                    { month: 'Apr', cibil: filteredByScore[0].creditScore - 10, experian: filteredByScore[0].creditScore - 18, equifax: filteredByScore[0].creditScore - 9, crif: filteredByScore[0].creditScore + 20 },
+                    { month: 'May', cibil: filteredByScore[0].creditScore - 5, experian: filteredByScore[0].creditScore - 17, equifax: filteredByScore[0].creditScore - 8, crif: filteredByScore[0].creditScore + 21 },
+                    { month: 'Jun', cibil: filteredByScore[0].creditScore, experian: filteredByScore[0].creditScore - 17, equifax: filteredByScore[0].creditScore - 8, crif: filteredByScore[0].creditScore + 22 },
                   ]}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
@@ -898,7 +772,7 @@ const bankRankings = [
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {/* CIBIL Score */}
-                <BureauScoreSpeedometer 
+                <AnimatedSpeedometer 
                   bureauName="CIBIL" 
                   score={filteredByScore[0].creditScore} 
                   range="300-900" 
@@ -907,7 +781,7 @@ const bankRankings = [
                 />
                 
                 {/* Experian Score */}
-                <BureauScoreSpeedometer 
+                <AnimatedSpeedometer 
                   bureauName="Experian" 
                   score={filteredByScore[0].creditScore - 17} 
                   range="300-900" 
@@ -916,7 +790,7 @@ const bankRankings = [
                 />
                 
                 {/* Equifax Score */}
-                <BureauScoreSpeedometer 
+                <AnimatedSpeedometer 
                   bureauName="Equifax" 
                   score={filteredByScore[0].creditScore - 8} 
                   range="300-900" 
@@ -925,7 +799,7 @@ const bankRankings = [
                 />
                 
                 {/* CRIF Score */}
-                <BureauScoreSpeedometer 
+                <AnimatedSpeedometer 
                   bureauName="CRIF" 
                   score={filteredByScore[0].creditScore + 22} 
                   range="300-900" 

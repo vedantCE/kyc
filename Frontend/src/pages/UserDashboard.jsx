@@ -42,6 +42,7 @@ import {
   CartesianGrid,
   ResponsiveContainer,
 } from "recharts";
+import AnimatedSpeedometer from "@/components/AnimatedSpeedometer";
 
 /*
   This file extends the original UserDashboard by adding a full loan application flow.
@@ -1041,18 +1042,12 @@ const UserDashboard = () => {
   ];
 
   const creditScoreHistory = [
-    { month: "Jan", score: 785 },
-    { month: "Feb", score: 651 },
-    { month: "Mar", score: 755 },
-    { month: "Apr", score: 855 },
-    { month: "May", score: 750 },
-    { month: "Jun", score: 742 },
-    { month: "Jul", score: 698 },
-    { month: "Aug", score: 812 },
-    { month: "Sep", score: 679 },
-    { month: "Oct", score: 826 },
-    { month: "Nov", score: 751 },
-    { month: "Dec", score: 798 },
+    { month: "Jan", score: creditScore - 50 },
+    { month: "Feb", score: creditScore - 30 },
+    { month: "Mar", score: creditScore - 20 },
+    { month: "Apr", score: creditScore - 10 },
+    { month: "May", score: creditScore - 5 },
+    { month: "Jun", score: creditScore },
   ];
 
   const faqs = [
@@ -1342,7 +1337,7 @@ const UserDashboard = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Top Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="shadow-card border-l-4 border-l-blue-500 bg-white hover:bg-blue-50 transition-all duration-300">
+          <Card className="shadow-card border-l-4 border-l-blue-500 bg-white hover:bg-blue-50 transition-all duration-300 cursor-pointer" onClick={() => document.querySelector('[value="scores"]').click()}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-blue-800">
                 Credit Score
@@ -1355,10 +1350,20 @@ const UserDashboard = () => {
               </div>
               <p className="text-xs text-blue-600">Excellent (750-850)</p>
               <div className="mt-2">
-                <Progress
-                  value={(creditScore / 850) * 100}
-                  className="h-2 bg-blue-100"
-                />
+                <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div 
+                    className={`h-full rounded-full ${
+                      creditScore >= 750 ? 'bg-green-500' : 
+                      creditScore >= 650 ? 'bg-yellow-500' : 'bg-red-500'
+                    }`}
+                    style={{ 
+                      width: `${
+                        creditScore >= 750 ? '90%' : 
+                        creditScore >= 650 ? '70%' : '25%'
+                      }` 
+                    }}
+                  ></div>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -1430,7 +1435,7 @@ const UserDashboard = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="loans" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 rounded-full bg-white p-1 border border-blue-200">
+          <TabsList className="grid w-full grid-cols-6 rounded-full bg-white p-1 border border-blue-200">
             <TabsTrigger
               value="loans"
               className="rounded-full data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200"
@@ -1444,12 +1449,17 @@ const UserDashboard = () => {
               Loan Status
             </TabsTrigger>
             <TabsTrigger
+              value="scores"
+              className="rounded-full data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200"
+            >
+              Credit Scores
+            </TabsTrigger>
+            <TabsTrigger
               value="improve"
               className="rounded-full data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200"
             >
               Credit History
             </TabsTrigger>
-
             <TabsTrigger
               value="calculator"
               className="rounded-full data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200"
@@ -1642,6 +1652,70 @@ const UserDashboard = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+          <TabsContent value="scores">
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Your Credit Scores</CardTitle>
+                  <CardDescription>
+                    Current credit scores from all major bureaus with animated gauges
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {/* CIBIL Score */}
+                    <AnimatedSpeedometer 
+                      bureauName="CIBIL" 
+                      score={creditScore} 
+                      range="300-900" 
+                      peerAverage={75} 
+                      postAverage={82} 
+                    />
+                    
+                    {/* Experian Score */}
+                    <AnimatedSpeedometer 
+                      bureauName="Experian" 
+                      score={creditScore - 15} 
+                      range="300-900" 
+                      peerAverage={72} 
+                      postAverage={78} 
+                    />
+                    
+                    {/* Equifax Score */}
+                    <AnimatedSpeedometer 
+                      bureauName="Equifax" 
+                      score={creditScore - 8} 
+                      range="300-900" 
+                      peerAverage={68} 
+                      postAverage={74} 
+                    />
+                    
+                    {/* CRIF Score */}
+                    <AnimatedSpeedometer 
+                      bureauName="CRIF" 
+                      score={creditScore + 25} 
+                      range="300-900" 
+                      peerAverage={79} 
+                      postAverage={85} 
+                    />
+                  </div>
+                  
+                  <div className="mt-6 p-4 bg-slate-50 rounded-lg">
+                    <div className="flex items-center">
+                      <div className="w-3 h-3 bg-blue-600 rounded-full mr-2"></div>
+                      <span className="font-medium">Average Score:</span>
+                      <span className="ml-2 font-bold text-blue-700">
+                        {Math.round((creditScore + (creditScore - 15) + (creditScore - 8) + (creditScore + 25)) / 4)}
+                      </span>
+                    </div>
+                    <p className="text-sm text-slate-600 mt-2">
+                      Your scores are updated monthly. Keep making timely payments to improve them!
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
           <TabsContent value="improve">
             <Card>

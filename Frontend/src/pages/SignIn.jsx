@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Shield } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { api } from "@/lib/api";
 
 const SignIn = () => {
   const [email, setEmail] = useState("");
@@ -24,27 +25,50 @@ const SignIn = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    setTimeout(() => {
-      if (email.includes("admin")) {
-        localStorage.setItem("userRole", "admin");
-        localStorage.setItem("userEmail", email);
-        navigate("/admin-dashboard");
-      } else if (email.includes("bank")) {
-        localStorage.setItem("userRole", "bank");
-        localStorage.setItem("userEmail", email);
-        navigate("/bank-dashboard");
-      } else {
-        localStorage.setItem("userRole", "user");
-        localStorage.setItem("userEmail", email);
-        navigate("/user-dashboard");
-      }
-
-      toast({
-        title: "Welcome back!",
-        description: "You have been successfully signed in.",
+    try {
+      const data = await api.login({
+        email: email,
+        password: password
       });
+
+      if (data.status === "Success") {
+        localStorage.setItem("userRole", data.user.role);
+        localStorage.setItem("userEmail", data.user.email);
+        localStorage.setItem("userName", `${data.user.firstName} ${data.user.lastName}`);
+        localStorage.setItem("userPAN", data.user.panNumber);
+        localStorage.setItem("username", data.user.username);
+
+        toast({
+          title: "Welcome back!",
+          description: "You have been successfully signed in.",
+        });
+
+        // Redirect based on email domain
+        if (email.endsWith("@admin.com")) {
+          navigate("/admin-dashboard");
+        } else if (email.endsWith("@bank.com")) {
+          navigate("/bank-dashboard");
+        } else if (email.endsWith("@gmail.com")) {
+          navigate("/user-dashboard");
+        } else {
+          navigate("/user-dashboard"); // default fallback
+        }
+      } else {
+        toast({
+          title: "Login Failed",
+          description: data.message || "Invalid credentials",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Network Error",
+        description: "Unable to connect to server. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -140,19 +164,7 @@ const SignIn = () => {
               </p>
             </div>
 
-            <div className="mt-5 p-4 bg-sky-100 rounded-lg text-sm text-blue-800">
-              <p className="font-semibold mb-2 text-blue-700">Demo Accounts:</p>
-              <p>
-                User: <span className="font-medium">user@demo.com</span>
-              </p>
-              <p>
-                Bank: <span className="font-medium">bank@demo.com</span>
-              </p>
-              <p>
-                Admin: <span className="font-medium">admin@demo.com</span>
-              </p>
-              <p className="mt-2 text-xs">Password: any password</p>
-            </div>
+
           </CardContent>
         </Card>
       </div>

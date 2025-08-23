@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Shield, Eye, EyeOff, CheckCircle, XCircle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { api } from "@/lib/api";
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
@@ -90,32 +91,53 @@ const SignUp = () => {
 
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      localStorage.setItem("userRole", formData.role);
-      localStorage.setItem("userEmail", formData.email);
-      localStorage.setItem(
-        "userName",
-        `${formData.firstName} ${formData.lastName}`
-      );
-      localStorage.setItem("userPAN", formData.panNumber);
-
-      toast({
-        title: "Account created!",
-        description: "Your account has been successfully created.",
+    try {
+      const data = await api.register({
+        username: formData.username,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        panNumber: formData.panNumber,
+        email: formData.email,
+        password: formData.password,
+        role: formData.role
       });
 
-      // Redirect based on role
-      if (formData.role === "admin") {
-        navigate("/admin-dashboard");
-      } else if (formData.role === "bank") {
-        navigate("/bank-dashboard");
-      } else {
-        navigate("/user-onboarding");
-      }
+      if (data.status === "Success") {
+        localStorage.setItem("userRole", data.user.role);
+        localStorage.setItem("userEmail", data.user.email);
+        localStorage.setItem("userName", `${data.user.firstName} ${data.user.lastName}`);
+        localStorage.setItem("userPAN", data.user.panNumber);
+        localStorage.setItem("username", data.user.username);
 
+        toast({
+          title: "Account created!",
+          description: "Your account has been successfully created.",
+        });
+
+        // Redirect based on role
+        if (data.user.role === "admin") {
+          navigate("/admin-dashboard");
+        } else if (data.user.role === "bank") {
+          navigate("/bank-dashboard");
+        } else {
+          navigate("/user-onboarding");
+        }
+      } else {
+        toast({
+          title: "Registration Failed",
+          description: data.message || "Something went wrong",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Network Error",
+        description: "Unable to connect to server. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   const handleInputChange = (field, value) => {

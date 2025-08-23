@@ -58,6 +58,7 @@ import {
   LineChart,
   Line,
 } from "recharts";
+import AnimatedSpeedometer from "@/components/AnimatedSpeedometer";
 
 // 🔹 Utility function to generate consistent scores based on application ID
 const generateConsistentScores = (id) => {
@@ -121,6 +122,21 @@ const ReviewForm = ({ application, onClose, onConfirm }) => {
   if (!application) return null;
 
   const { bureauScores, creditScoreHistory } = generateConsistentScores(application.id);
+  
+  // Ensure last graph values match gauge values
+  const adjustedHistory = creditScoreHistory.map((item, index) => {
+    if (index === creditScoreHistory.length - 1) {
+      // Last entry should match bureau scores
+      return {
+        ...item,
+        CIBIL: bureauScores[0].score,
+        Equifax: bureauScores[1].score,
+        Experian: bureauScores[2].score,
+        CRIF: bureauScores[3].score,
+      };
+    }
+    return item;
+  });
 
   const handleReviewConfirm = () => {
     if (onConfirm) {
@@ -147,7 +163,7 @@ const ReviewForm = ({ application, onClose, onConfirm }) => {
               <h3 className="text-base font-semibold text-gray-800">Credit Score History</h3>
               <div className="flex-grow min-h-[280px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={creditScoreHistory}>
+                  <LineChart data={adjustedHistory}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                     <XAxis dataKey="month" stroke="#6b7280" />
                     <YAxis domain={[300, 900]} stroke="#6b7280" />
@@ -169,13 +185,14 @@ const ReviewForm = ({ application, onClose, onConfirm }) => {
               <h3 className="text-base font-semibold text-gray-800 mb-2">Bureau Scores</h3>
               <div className="grid grid-cols-2 gap-2">
                 {bureauScores.map((bureau) => (
-                  <BureauScoreSpeedometer
+                  <AnimatedSpeedometer
                     key={bureau.name}
                     bureauName={bureau.name}
                     score={bureau.score}
                     range={bureau.range}
                     peerAverage={bureau.peerAverage}
                     postAverage={bureau.postAverage}
+                    size="small"
                   />
                 ))}
               </div>
@@ -459,132 +476,7 @@ const SuccessAnimation = ({ message, onClose, isRejection = false }) => {
   );
 };
 
-const BureauScoreSpeedometer = ({ bureauName, score, range, peerAverage, postAverage }) => {
-  // Parse min and max from range string (support both – and -)
-  const [minScore, maxScore] = range.replace(/–/g, '-').split('-').map(s => Number(s.trim()));
 
-  // Ensure score is within bounds and calculate percentage
-  const clampedScore = Math.max(minScore, Math.min(maxScore, score));
-  const percent = (clampedScore - minScore) / (maxScore - minScore);
-
-  // SVG semicircle constants
-  const centerX = 100, centerY = 100, radius = 80;
-
-  // Calculate needle angle (from 180deg to 0deg)
-  const angle = 180 - percent * 180;
-  const needleLength = radius - 9;
-  const rad = (angle * Math.PI) / 180;
-  const needleX = centerX + needleLength * Math.cos(rad);
-  const needleY = centerY - needleLength * Math.sin(rad);
-
-  // Helper for arc path
-  const describeArc = (x, y, r, startAngle, endAngle) => {
-    const start = {
-      x: x + r * Math.cos((Math.PI * startAngle) / 180),
-      y: y + r * Math.sin((Math.PI * startAngle) / 180),
-    };
-    const end = {
-      x: x + r * Math.cos((Math.PI * endAngle) / 180),
-      y: y + r * Math.sin((Math.PI * endAngle) / 180),
-    };
-    const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
-    return [
-      "M", start.x, start.y,
-      "A", r, r, 0, largeArcFlag, 1, end.x, end.y
-    ].join(" ");
-  };
-
-  return (
-    <Card className="bg-white border border-gray-200 shadow-md rounded-lg p-3 h-full flex flex-col items-center justify-between">
-      <CardContent className="p-0 w-full">
-        {/* Bureau Header */}
-        <div className="text-center mb-3">
-          <h3 className="text-lg font-semibold text-gray-800">{bureauName} Score</h3>
-          <div className="text-2xl font-bold text-blue-800">{score}</div>
-          <div className="text-xs text-gray-500 mt-1">Range: {range}</div>
-        </div>
-
-        {/* Semicircular Speedometer */}
-        <div className="flex flex-col items-center mb-3">
-          <svg width="140" height="90" viewBox="0 0 200 120">
-            {/* Background arc */}
-            <path
-              d={describeArc(centerX, centerY, radius, 180, 0)}
-              fill="none"
-              stroke="#e5e7eb"
-              strokeWidth="18"
-              strokeLinecap="round"
-            />
-            {/* Colored arc with gradient */}
-            <defs>
-              <linearGradient id="gauge-gradient" x1="20" y1="100" x2="180" y2="100" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stopColor="#f87171" />
-                <stop offset="50%" stopColor="#facc15" />
-                <stop offset="100%" stopColor="#22c55e" />
-              </linearGradient>
-            </defs>
-            <path
-              d={describeArc(centerX, centerY, radius, 180, 0)}
-              fill="none"
-              stroke="url(#gauge-gradient)"
-              strokeWidth="18"
-              strokeLinecap="round"
-            />
-            {/* Needle */}
-            <line
-              x1={centerX}
-              y1={centerY}
-              x2={needleX}
-              y2={needleY}
-              stroke="#2563eb"
-              strokeWidth="5"
-              strokeLinecap="round"
-            />
-            {/* Needle center circle */}
-            <circle cx={centerX} cy={centerY} r="6" fill="#2563eb" stroke="#fff" strokeWidth="2" />
-            {/* Min/Max labels */}
-            <text x={centerX - radius + 10} y={centerY + 20} fontSize="10" fill="#6b7280" textAnchor="start">{minScore}</text>
-            <text x={centerX + radius - 10} y={centerY + 20} fontSize="10" fill="#6b7280" textAnchor="end">{maxScore}</text>
-            {/* Poor/Excellent labels */}
-            <text x={centerX - radius + 10} y={centerY + 35} fontSize="10" fill="#ef4444" textAnchor="start">Poor</text>
-            <text x={centerX + radius - 10} y={centerY + 35} fontSize="10" fill="#22c55e" textAnchor="end">Excellent</text>
-            {/* Current score label */}
-            <text x={centerX} y={centerY + 50} fontSize="10" fill="#2563eb" textAnchor="middle" fontWeight="bold">
-              Score: {score}
-            </text>
-          </svg>
-        </div>
-
-        {/* Comparison Metrics */}
-        <div className="grid grid-cols-2 gap-4">
-          {/* Peer Average */}
-          <div className="text-center">
-            <h4 className="text-xs font-medium text-gray-700 mb-1">Peer</h4>
-            <div className="h-2 bg-gray-200 rounded-full overflow-hidden mx-1">
-              <div
-                className="h-full bg-blue-500"
-                style={{ width: `${peerAverage}%` }}
-              ></div>
-            </div>
-            <div className="text-[10px] text-gray-600">Avg {peerAverage}%</div>
-          </div>
-
-          {/* Post Average */}
-          <div className="text-center">
-            <h4 className="text-xs font-medium text-gray-700 mb-1">Post</h4>
-            <div className="h-2 bg-gray-200 rounded-full overflow-hidden mx-1">
-              <div
-                className="h-full bg-green-500"
-                style={{ width: `${postAverage}%` }}
-              ></div>
-            </div>
-            <div className="text-[10px] text-gray-600">Avg {postAverage}%</div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
 
 
 const BankDashboard = () => {
@@ -712,7 +604,7 @@ const BankDashboard = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [isRejectionSuccess, setIsRejectionSuccess] = useState(false);
-  const bankEmail = "bank@demo.com";
+  const bankEmail = localStorage.getItem("userEmail") || "bank@demo.com";
 
   const handleLogout = () => {
     navigate("/signin");
@@ -1410,7 +1302,7 @@ const BankDashboard = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {bureauScores.map((bureau) => (
-                    <BureauScoreSpeedometer
+                    <AnimatedSpeedometer
                       key={bureau.name}
                       bureauName={bureau.name}
                       score={bureau.score}
