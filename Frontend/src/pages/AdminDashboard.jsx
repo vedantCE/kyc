@@ -4,12 +4,14 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { useNavigate } from "react-router-dom";
+import { X, Save, Edit, Phone, Mail, MapPin, CreditCard, Calendar } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  Users, 
-  CheckCircle, 
+import {
+  Users,
+  CheckCircle,
   Eye,
   Shield,
   Search,
@@ -20,23 +22,23 @@ import {
   Globe,
   BarChart3
 } from "lucide-react";
-import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend, 
-  ResponsiveContainer, 
-  AreaChart, 
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  AreaChart,
   Area,
   BarChart,
   Bar,
-  Radar, 
-  RadarChart, 
-  PolarGrid, 
-  PolarAngleAxis, 
+  Radar,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
   PolarRadiusAxis,
   PieChart,
   Pie,
@@ -45,11 +47,118 @@ import {
 
 import AnimatedSpeedometer from "@/components/AnimatedSpeedometer";
 
+// ================= Customer Detail Modal =================
+const CustomerDetailModal = ({ customer, isOpen, onClose, onSave, isEditing, onEdit }) => {
+  const [editedCustomer, setEditedCustomer] = useState(customer);
+  if (!isOpen) return null;
+
+  const handleChange = (field, value) => {
+    setEditedCustomer(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSave = () => {
+    onSave(editedCustomer);
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+      <div className="absolute inset-0 bg-black bg-opacity-30" onClick={onClose}></div>
+      <div className="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto relative z-10">
+        <div className="flex justify-between items-center p-6 border-b">
+          <h2 className="text-2xl font-bold text-slate-800">
+            {isEditing ? "Edit Customer" : "Customer Details"}
+          </h2>
+          <button onClick={onClose} className="text-slate-500 hover:text-slate-700">
+            <X size={24} />
+          </button>
+        </div>
+        <div className="p-6 space-y-4">
+          <div>
+            <label className="text-sm">Name</label>
+            {isEditing ? (
+              <Input value={editedCustomer.name} onChange={(e) => handleChange('name', e.target.value)} />
+            ) : (
+              <div>{customer.name}</div>
+            )}
+          </div>
+          <div>
+            <label className="text-sm">Email</label>
+            {isEditing ? (
+              <Input value={editedCustomer.email} onChange={(e) => handleChange('email', e.target.value)} />
+            ) : (
+              <div className="flex items-center">
+                <Mail className="h-4 w-4 mr-2" /> {customer.email}
+              </div>
+            )}
+          </div>
+          <div>
+            <label className="text-sm">Phone</label>
+            {isEditing ? (
+              <Input value={editedCustomer.phone} onChange={(e) => handleChange('phone', e.target.value)} />
+            ) : (
+              <div className="flex items-center">
+                <Phone className="h-4 w-4 mr-2" /> {customer.phone}
+              </div>
+            )}
+          </div>
+          <div>
+            <label className="text-sm">City</label>
+            {isEditing ? (
+              <Input value={editedCustomer.city} onChange={(e) => handleChange('city', e.target.value)} />
+            ) : (
+              <div className="flex items-center">
+                <MapPin className="h-4 w-4 mr-2" /> {customer.city}
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="flex justify-end space-x-3 p-4 border-t">
+          {isEditing ? (
+            <>
+              <Button variant="outline" onClick={onClose}>Cancel</Button>
+              <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700">
+                <Save className="mr-2 h-4 w-4" /> Save
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="outline" onClick={onClose}>Close</Button>
+              <Button onClick={onEdit} className="bg-blue-600 hover:bg-blue-700">
+                <Edit className="mr-2 h-4 w-4" /> Edit
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
 const AdminDashboard = () => {
   const [searchUser, setSearchUser] = useState("");
   const [searchScore, setSearchScore] = useState("");
   const adminEmail = localStorage.getItem("userEmail") || "admin@demo.com";
-  
+
+  // strict lookup states (add near searchUser/searchScore)
+  const [lookupResult, setLookupResult] = useState(null);
+  const [lookupSubmitted, setLookupSubmitted] = useState(false);
+
+
+  // Customer modal state
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isEditingCustomer, setIsEditingCustomer] = useState(false);
+
+  // Bank modal state
+  const [selectedBank, setSelectedBank] = useState(null);
+  const [isBankDetailModalOpen, setIsBankDetailModalOpen] = useState(false);
+  const [isEditingBank, setIsEditingBank] = useState(false);
+
+  // navigation hook
+  const navigate = useNavigate();
+
   // Mock admin data
   const customers = [
     {
@@ -126,10 +235,185 @@ const AdminDashboard = () => {
     }
   ];
 
+  const BankDetailModal = ({ bank, isOpen, onClose, onSave, isEditing, onEdit }) => {
+    const [editedBank, setEditedBank] = useState(bank);
+
+    useEffect(() => {
+      setEditedBank(bank);
+    }, [bank]);
+
+    if (!isOpen || !bank) return null;
+
+    const handleChange = (field, value) => {
+      setEditedBank(prev => ({ ...prev, [field]: value }));
+    };
+
+    const handleSave = () => {
+      onSave(editedBank);
+      onClose();
+    };
+
+    const statusBadge = (status) => {
+      if (status === "Active")
+        return <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">Active</Badge>;
+      if (status === "Suspended")
+        return <Badge className="bg-red-100 text-red-700 border-red-200">Suspended</Badge>;
+      return <Badge variant="outline">{status}</Badge>;
+    };
+
+    return (
+      <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+        <div className="absolute inset-0 bg-black bg-opacity-30" onClick={onClose}></div>
+        <div className="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto relative z-10">
+          <div className="flex justify-between items-center p-6 border-b">
+            <h2 className="text-2xl font-bold text-slate-800">
+              {isEditing ? "Manage Bank" : "Bank Details"}
+            </h2>
+            <button onClick={onClose} className="text-slate-500 hover:text-slate-700">
+              <X size={24} />
+            </button>
+          </div>
+
+          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* ID (read-only) */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Bank ID</label>
+              <div className="text-slate-900 font-medium">{bank.id}</div>
+            </div>
+
+            {/* Name */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Bank Name</label>
+              {isEditing ? (
+                <Input value={editedBank.name || ""} onChange={(e) => handleChange("name", e.target.value)} />
+              ) : (<div className="text-slate-900">{bank.name}</div>)}
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+              {isEditing ? (
+                <Input value={editedBank.email || ""} onChange={(e) => handleChange("email", e.target.value)} />
+              ) : (<div className="text-slate-900">{bank.email}</div>)}
+            </div>
+
+            {/* Totals */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Total Customers</label>
+              {isEditing ? (
+                <Input
+                  type="number"
+                  value={editedBank.totalCustomers ?? ""}
+                  onChange={(e) => handleChange("totalCustomers", Number(e.target.value))}
+                />
+              ) : (<div className="text-slate-900">{bank.totalCustomers?.toLocaleString?.() ?? bank.totalCustomers}</div>)}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Total Applications</label>
+              {isEditing ? (
+                <Input
+                  type="number"
+                  value={editedBank.totalApplications ?? ""}
+                  onChange={(e) => handleChange("totalApplications", Number(e.target.value))}
+                />
+              ) : (<div className="text-slate-900">{bank.totalApplications?.toLocaleString?.() ?? bank.totalApplications}</div>)}
+            </div>
+
+            {/* Approval rate */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Approval Rate (%)</label>
+              {isEditing ? (
+                <Input
+                  type="number"
+                  value={editedBank.approvalRate ?? ""}
+                  onChange={(e) => handleChange("approvalRate", Number(e.target.value))}
+                />
+              ) : (<div className="text-slate-900">{bank.approvalRate}%</div>)}
+            </div>
+
+            {/* Status */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
+              {isEditing ? (
+                <Select value={editedBank.status || ""} onValueChange={(v) => handleChange("status", v)}>
+                  <SelectTrigger><SelectValue placeholder="Select status" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Active">Active</SelectItem>
+                    <SelectItem value="Suspended">Suspended</SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (<div>{statusBadge(bank.status)}</div>)}
+            </div>
+
+            {/* API Calls & Last Active (read-only) */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">API Calls</label>
+              <div className="text-slate-900">{bank.apiCalls?.toLocaleString?.() ?? bank.apiCalls}</div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Last Active</label>
+              <div className="text-slate-900">{bank.lastActive}</div>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 p-4 border-t">
+            {isEditing ? (
+              <>
+                <Button variant="outline" onClick={onClose}>Cancel</Button>
+                <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700">
+                  <Save className="mr-2 h-4 w-4" /> Save Changes
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="outline" onClick={onClose}>Close</Button>
+                <Button onClick={onEdit} className="bg-blue-600 hover:bg-blue-700">
+                  <Edit className="mr-2 h-4 w-4" /> Manage
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+
+  // customer
+  const handleViewCustomer = (c) => {
+    setSelectedCustomer(c);
+    setIsDetailModalOpen(true);
+    setIsEditingCustomer(false);
+  };
+  const handleEditCustomer = (c) => {
+    setSelectedCustomer(c);
+    setIsDetailModalOpen(true);
+    setIsEditingCustomer(true);
+  };
+
+  // bank
+  const handleViewBank = (b) => {
+    setSelectedBank(b);
+    setIsBankDetailModalOpen(true);
+    setIsEditingBank(false);
+  };
+  const handleManageBank = (b) => {
+    setSelectedBank(b);
+    setIsBankDetailModalOpen(true);
+    setIsEditingBank(true);
+  };
+
   const totalCustomers = 45267;
   const totalLoansApproved = 8934;
   const websiteVisits = 127543;
   const totalApplications = customers.length; // Dynamic count based on customer data
+
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/signin");
+  };
+
 
   const banks = [
     {
@@ -199,109 +483,109 @@ const AdminDashboard = () => {
   ];
 
   // Add this data after the existing mock data
-const bankRecoveryData = [
-  {
-    bank: "SBI",
-    recovered2020: 1245,
-    recovered2021: 1356,
-    recovered2022: 1520,
-    recovered2023: 1680,
-    recovered2024: 920
-  },
-  {
-    bank: "HDFC",
-    recovered2020: 980,
-    recovered2021: 1120,
-    recovered2022: 1250,
-    recovered2023: 1420,
-    recovered2024: 780
-  },
-  {
-    bank: "ICICI",
-    recovered2020: 845,
-    recovered2021: 920,
-    recovered2022: 1080,
-    recovered2023: 1210,
-    recovered2024: 650
-  },
-  {
-    bank: "Axis",
-    recovered2020: 720,
-    recovered2021: 810,
-    recovered2022: 890,
-    recovered2023: 950,
-    recovered2024: 520
-  },
-  {
-    bank: "BoB",
-    recovered2020: 620,
-    recovered2021: 680,
-    recovered2022: 750,
-    recovered2023: 820,
-    recovered2024: 450
-  }
-];
+  const bankRecoveryData = [
+    {
+      bank: "SBI",
+      recovered2020: 1245,
+      recovered2021: 1356,
+      recovered2022: 1520,
+      recovered2023: 1680,
+      recovered2024: 920
+    },
+    {
+      bank: "HDFC",
+      recovered2020: 980,
+      recovered2021: 1120,
+      recovered2022: 1250,
+      recovered2023: 1420,
+      recovered2024: 780
+    },
+    {
+      bank: "ICICI",
+      recovered2020: 845,
+      recovered2021: 920,
+      recovered2022: 1080,
+      recovered2023: 1210,
+      recovered2024: 650
+    },
+    {
+      bank: "Axis",
+      recovered2020: 720,
+      recovered2021: 810,
+      recovered2022: 890,
+      recovered2023: 950,
+      recovered2024: 520
+    },
+    {
+      bank: "BoB",
+      recovered2020: 620,
+      recovered2021: 680,
+      recovered2022: 750,
+      recovered2023: 820,
+      recovered2024: 450
+    }
+  ];
 
-const bankRankings = [
-  {
-    id: "1",
-    name: "State Bank of India",
-    totalRecovered: 6721,
-    npaRatio: 4.5,
-    recoveryRate: 82.4,
-    primarySource: "Corporate Loans"
-  },
-  {
-    id: "2",
-    name: "HDFC Bank",
-    totalRecovered: 5550,
-    npaRatio: 3.2,
-    recoveryRate: 85.7,
-    primarySource: "Retail Loans"
-  },
-  {
-    id: "3",
-    name: "ICICI Bank",
-    totalRecovered: 4705,
-    npaRatio: 4.8,
-    recoveryRate: 79.6,
-    primarySource: "Business Loans"
-  },
-  {
-    id: "4",
-    name: "Axis Bank",
-    totalRecovered: 3890,
-    npaRatio: 5.2,
-    recoveryRate: 76.8,
-    primarySource: "Personal Loans"
-  },
-  {
-    id: "5",
-    name: "Bank of Baroda",
-    totalRecovered: 3320,
-    npaRatio: 6.1,
-    recoveryRate: 72.3,
-    primarySource: "Agriculture Loans"
-  },
-  {
-    id: "6",
-    name: "Kotak Mahindra",
-    totalRecovered: 2850,
-    npaRatio: 4.2,
-    recoveryRate: 81.5,
-    primarySource: "MSME Loans"
-  }
-];
+  const bankRankings = [
+    {
+      id: "1",
+      name: "State Bank of India",
+      totalRecovered: 6721,
+      npaRatio: 4.5,
+      recoveryRate: 82.4,
+      primarySource: "Corporate Loans"
+    },
+    {
+      id: "2",
+      name: "HDFC Bank",
+      totalRecovered: 5550,
+      npaRatio: 3.2,
+      recoveryRate: 85.7,
+      primarySource: "Retail Loans"
+    },
+    {
+      id: "3",
+      name: "ICICI Bank",
+      totalRecovered: 4705,
+      npaRatio: 4.8,
+      recoveryRate: 79.6,
+      primarySource: "Business Loans"
+    },
+    {
+      id: "4",
+      name: "Axis Bank",
+      totalRecovered: 3890,
+      npaRatio: 5.2,
+      recoveryRate: 76.8,
+      primarySource: "Personal Loans"
+    },
+    {
+      id: "5",
+      name: "Bank of Baroda",
+      totalRecovered: 3320,
+      npaRatio: 6.1,
+      recoveryRate: 72.3,
+      primarySource: "Agriculture Loans"
+    },
+    {
+      id: "6",
+      name: "Kotak Mahindra",
+      totalRecovered: 2850,
+      npaRatio: 4.2,
+      recoveryRate: 81.5,
+      primarySource: "MSME Loans"
+    }
+  ];
 
-  const filteredCustomers = customers.filter(customer => 
+  const filteredCustomers = customers.filter(customer =>
     customer.name.toLowerCase().includes(searchUser.toLowerCase()) ||
     customer.email.toLowerCase().includes(searchUser.toLowerCase()) ||
     customer.id.toLowerCase().includes(searchUser.toLowerCase()) ||
     customer.phone.includes(searchUser)
   );
 
-  const filteredByScore = searchScore ? 
-    filteredCustomers.filter(customer => 
+  const filteredByScore = searchScore ?
+    filteredCustomers.filter(customer =>
       customer.creditScore.toString().includes(searchScore)
     ) : filteredCustomers;
 
@@ -359,7 +643,7 @@ const bankRankings = [
               </div>
               <div>
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-700 to-blue-900 bg-clip-text text-transparent">
-                  CreditScore 
+                  CreditScore
                 </h1>
                 <Badge className="bg-blue-100 text-blue-700 border-blue-200 mt-1">Admin Portal</Badge>
               </div>
@@ -369,10 +653,11 @@ const bankRankings = [
                 <p className="text-sm text-slate-600">Super Admin</p>
                 <p className="text-sm font-semibold text-slate-800">{adminEmail}</p>
               </div>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
-                className="bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 hover:border-slate-300 transition-all duration-300"
+                onClick={handleLogout}
+                className="bg-red-50 border-red-200 text-red-600 hover:bg-red-100 hover:border-red-300 transition-all duration-300"
               >
                 Logout
               </Button>
@@ -393,7 +678,7 @@ const bankRankings = [
             <CardContent className="relative">
               <div className="text-3xl font-bold">{totalCustomers.toLocaleString()}</div>
               <p className="text-xs text-blue-100 mt-2">
-                 +18% from last month
+                +18% from last month
               </p>
             </CardContent>
           </Card>
@@ -407,7 +692,7 @@ const bankRankings = [
             <CardContent className="relative">
               <div className="text-3xl font-bold">{totalApplications.toLocaleString()}</div>
               <p className="text-xs text-emerald-100 mt-2">
-                 +23% from last month
+                +23% from last month
               </p>
             </CardContent>
           </Card>
@@ -421,7 +706,7 @@ const bankRankings = [
             <CardContent className="relative">
               <div className="text-3xl font-bold">{websiteVisits.toLocaleString()}</div>
               <p className="text-xs text-sky-100 mt-2">
-                 +31% from last month
+                +31% from last month
               </p>
             </CardContent>
           </Card>
@@ -458,7 +743,7 @@ const bankRankings = [
                       />
                     </div>
                     <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white">
-                       Export Data
+                      Export Data
                     </Button>
                   </div>
                 </div>
@@ -495,28 +780,30 @@ const bankRankings = [
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge className={`font-bold ${
-                            customer.creditScore >= 750 ? 'bg-emerald-100 text-emerald-700' : 
+                          <Badge className={`font-bold ${customer.creditScore >= 750 ? 'bg-emerald-100 text-emerald-700' :
                             customer.creditScore >= 650 ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-700'
-                          }`}>
+                            }`}>
                             {customer.creditScore}
                           </Badge>
                         </TableCell>
                         <TableCell>{getRiskBadge(customer.riskLevel)}</TableCell>
                         <TableCell>
                           <Badge variant="outline" className="font-semibold border-blue-200 text-blue-700">
-                             {customer.totalLoans}
+                            {customer.totalLoans}
                           </Badge>
                         </TableCell>
                         <TableCell>{getStatusBadge(customer.status)}</TableCell>
                         <TableCell className="text-slate-600"> {customer.joinDate}</TableCell>
                         <TableCell>
                           <div className="flex space-x-2">
-                            <Button variant="outline" size="sm" className="bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100">
-                               View
+                            <Button size="sm" variant="outline" onClick={() => handleViewCustomer(customer)}
+                              className="bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100 hover:bg-blue-100"
+                            >
+                              View
                             </Button>
-                            <Button variant="outline" size="sm" className="bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100">
-                               Edit
+
+                            <Button variant="outline" size="sm" className="bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100" onClick={() => handleEditCustomer(customer)}>
+                              Edit
                             </Button>
                           </div>
                         </TableCell>
@@ -576,19 +863,20 @@ const bankRankings = [
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge className={`font-bold ${
-                            bank.approvalRate >= 70 ? 'bg-emerald-100 text-emerald-700' : 
+                          <Badge className={`font-bold ${bank.approvalRate >= 70 ? 'bg-emerald-100 text-emerald-700' :
                             bank.approvalRate >= 60 ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-700'
-                          }`}>
+                            }`}>
                             {bank.approvalRate}%
                           </Badge>
                         </TableCell>
                         <TableCell>
                           <div className="flex space-x-2">
-                            <Button variant="outline" size="sm" className="bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100">
+                            <Button size="sm" variant="outline" onClick={() => handleViewBank(bank)}
+                              className="bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100 hover:bg-blue-100"
+                            >
                               Details
                             </Button>
-                            <Button variant="outline" size="sm" className="bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100">
+                            <Button variant="outline" size="sm" className="bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100" onClick={() => handleManageBank(bank)}>
                               Manage
                             </Button>
                           </div>
@@ -601,253 +889,292 @@ const bankRankings = [
             </Card>
           </TabsContent>
 
-<TabsContent value="analytics">
-  <div className="space-y-8">
-    <Card className="bg-white/90 backdrop-blur-sm border border-slate-200 shadow-xl rounded-xl overflow-hidden">
-      <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-100">
-        <CardTitle className="flex items-center gap-2 text-slate-800">
-          <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
-          Bank Fund Recovery Analysis
-        </CardTitle>
-        <CardDescription>Bank recovery performance and NPA management in India (2020-2024)</CardDescription>
-      </CardHeader>
-      <CardContent className="p-6">
-        <div className="h-[400px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={bankRecoveryData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="bank" />
-              <YAxis />
-              <Tooltip formatter={(value) => [`₹${value} Cr`, 'Amount Recovered']} />
-              <Legend />
-              <Bar 
-                dataKey="recovered2020" 
-                name="2020 Recovery" 
-                fill="hsl(214 95% 65%)" 
-              />
-              <Bar 
-                dataKey="recovered2021" 
-                name="2021 Recovery" 
-                fill="hsl(214 95% 55%)" 
-              />
-              <Bar 
-                dataKey="recovered2022" 
-                name="2022 Recovery" 
-                fill="hsl(214 95% 45%)" 
-              />
-              <Bar 
-                dataKey="recovered2023" 
-                name="2023 Recovery" 
-                fill="hsl(214 95% 35%)" 
-              />
-              <Bar 
-                dataKey="recovered2024" 
-                name="2024 Recovery (YTD)" 
-                fill="hsl(214 95% 25%)" 
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </CardContent>
-    </Card>
+          <TabsContent value="analytics">
+            <div className="space-y-8">
+              <Card className="bg-white/90 backdrop-blur-sm border border-slate-200 shadow-xl rounded-xl overflow-hidden">
+                <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-100">
+                  <CardTitle className="flex items-center gap-2 text-slate-800">
+                    <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+                    Bank Fund Recovery Analysis
+                  </CardTitle>
+                  <CardDescription>Bank recovery performance and NPA management in India (2020-2024)</CardDescription>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="h-[400px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={bankRecoveryData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="bank" />
+                        <YAxis />
+                        <Tooltip formatter={(value) => [`₹${value} Cr`, 'Amount Recovered']} />
+                        <Legend />
+                        <Bar
+                          dataKey="recovered2020"
+                          name="2020 Recovery"
+                          fill="hsl(214 95% 65%)"
+                        />
+                        <Bar
+                          dataKey="recovered2021"
+                          name="2021 Recovery"
+                          fill="hsl(214 95% 55%)"
+                        />
+                        <Bar
+                          dataKey="recovered2022"
+                          name="2022 Recovery"
+                          fill="hsl(214 95% 45%)"
+                        />
+                        <Bar
+                          dataKey="recovered2023"
+                          name="2023 Recovery"
+                          fill="hsl(214 95% 35%)"
+                        />
+                        <Bar
+                          dataKey="recovered2024"
+                          name="2024 Recovery (YTD)"
+                          fill="hsl(214 95% 25%)"
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
 
-    <Card className="bg-white/90 backdrop-blur-sm border border-slate-200 shadow-xl rounded-xl overflow-hidden">
-      <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-100">
-        <CardTitle className="flex items-center gap-2 text-slate-800">
-          <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
-          Bank Recovery Performance Details
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-0">
-        <Table>
-          <TableHeader className="bg-slate-50/80">
-            <TableRow>
-              <TableHead className="font-semibold text-slate-700">Rank</TableHead>
-              <TableHead className="font-semibold text-slate-700">Bank Name</TableHead>
-              <TableHead className="font-semibold text-slate-700">Total Recovered (₹ Cr)</TableHead>
-              <TableHead className="font-semibold text-slate-700">NPA Ratio</TableHead>
-              <TableHead className="font-semibold text-slate-700">Recovery Rate</TableHead>
-              <TableHead className="font-semibold text-slate-700">Primary Source</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {bankRankings.map((bank, index) => (
-              <TableRow key={bank.id} className="hover:bg-blue-50/50 transition-colors duration-200">
-                <TableCell>
-                  <Badge className={`
-                    ${index === 0 ? 'bg-yellow-100 text-yellow-700' : 
-                    index === 1 ? 'bg-blue-100 text-blue-700' : 
-                    index === 2 ? 'bg-orange-100 text-orange-700' : 'bg-slate-100 text-slate-700'}
+              <Card className="bg-white/90 backdrop-blur-sm border border-slate-200 shadow-xl rounded-xl overflow-hidden">
+                <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-100">
+                  <CardTitle className="flex items-center gap-2 text-slate-800">
+                    <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+                    Bank Recovery Performance Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader className="bg-slate-50/80">
+                      <TableRow>
+                        <TableHead className="font-semibold text-slate-700">Rank</TableHead>
+                        <TableHead className="font-semibold text-slate-700">Bank Name</TableHead>
+                        <TableHead className="font-semibold text-slate-700">Total Recovered (₹ Cr)</TableHead>
+                        <TableHead className="font-semibold text-slate-700">NPA Ratio</TableHead>
+                        <TableHead className="font-semibold text-slate-700">Recovery Rate</TableHead>
+                        <TableHead className="font-semibold text-slate-700">Primary Source</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {bankRankings.map((bank, index) => (
+                        <TableRow key={bank.id} className="hover:bg-blue-50/50 transition-colors duration-200">
+                          <TableCell>
+                            <Badge className={`
+                    ${index === 0 ? 'bg-yellow-100 text-yellow-700' :
+                                index === 1 ? 'bg-blue-100 text-blue-700' :
+                                  index === 2 ? 'bg-orange-100 text-orange-700' : 'bg-slate-100 text-slate-700'}
                   `}>
-                    #{index + 1}
-                  </Badge>
-                </TableCell>
-                <TableCell className="font-medium text-slate-800"> {bank.name}</TableCell>
-                <TableCell className="font-semibold text-blue-700">₹{bank.totalRecovered} Cr</TableCell>
-                <TableCell>
-                  <Badge className={
-                    bank.npaRatio < 5 ? 'bg-emerald-100 text-emerald-700' :
-                    bank.npaRatio < 8 ? 'bg-blue-100 text-blue-700' :
-                    bank.npaRatio < 10 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
-                  }>
-                    {bank.npaRatio}%
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge className={
-                    bank.recoveryRate >= 80 ? 'bg-emerald-100 text-emerald-700' :
-                    bank.recoveryRate >= 70 ? 'bg-blue-100 text-blue-700' :
-                    bank.recoveryRate >= 60 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
-                  }>
-                    {bank.recoveryRate}%
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-slate-600">{bank.primarySource}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
-  </div>
-</TabsContent>
+                              #{index + 1}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="font-medium text-slate-800"> {bank.name}</TableCell>
+                          <TableCell className="font-semibold text-blue-700">₹{bank.totalRecovered} Cr</TableCell>
+                          <TableCell>
+                            <Badge className={
+                              bank.npaRatio < 5 ? 'bg-emerald-100 text-emerald-700' :
+                                bank.npaRatio < 8 ? 'bg-blue-100 text-blue-700' :
+                                  bank.npaRatio < 10 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
+                            }>
+                              {bank.npaRatio}%
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={
+                              bank.recoveryRate >= 80 ? 'bg-emerald-100 text-emerald-700' :
+                                bank.recoveryRate >= 70 ? 'bg-blue-100 text-blue-700' :
+                                  bank.recoveryRate >= 60 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
+                            }>
+                              {bank.recoveryRate}%
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-slate-600">{bank.primarySource}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
 
-<TabsContent value="lookup">
-  <div className="space-y-8">
-    <Card className="bg-white/90 backdrop-blur-sm border border-slate-200 shadow-xl rounded-xl overflow-hidden">
-      <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-100">
-        <CardTitle className="flex items-center gap-2 text-slate-800">
-          <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
-          Credit Score Lookup
-        </CardTitle>
-        <CardDescription>Search and verify user credit scores</CardDescription>
-      </CardHeader>
-      <CardContent className="p-6">
-        <div className="flex space-x-4 mb-6">
-          <Input
-            placeholder="Enter User ID, Name or Email"
-            value={searchUser}
-            onChange={(e) => setSearchUser(e.target.value)}
-            className="w-full bg-white/80 backdrop-blur-sm border-slate-200 focus:border-blue-400 transition-all duration-200"
-          />
-          <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white">
-            🔍 Search
-          </Button>
-        </div>
-        
-        {searchUser && filteredByScore.length > 0 && (
-          <div className="space-y-8">
-            {/* Credit Score History Chart */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Credit Score History</h3>
-              <p className="text-sm text-slate-600 mb-4">Track how your credit scores have changed across all bureaus</p>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={[
-                    { month: 'Jan', cibil: filteredByScore[0].creditScore - 50, experian: filteredByScore[0].creditScore - 34, equifax: filteredByScore[0].creditScore - 25, crif: filteredByScore[0].creditScore + 5 },
-                    { month: 'Feb', cibil: filteredByScore[0].creditScore - 30, experian: filteredByScore[0].creditScore - 24, equifax: filteredByScore[0].creditScore - 18, crif: filteredByScore[0].creditScore + 12 },
-                    { month: 'Mar', cibil: filteredByScore[0].creditScore - 20, experian: filteredByScore[0].creditScore - 19, equifax: filteredByScore[0].creditScore - 12, crif: filteredByScore[0].creditScore + 18 },
-                    { month: 'Apr', cibil: filteredByScore[0].creditScore - 10, experian: filteredByScore[0].creditScore - 18, equifax: filteredByScore[0].creditScore - 9, crif: filteredByScore[0].creditScore + 20 },
-                    { month: 'May', cibil: filteredByScore[0].creditScore - 5, experian: filteredByScore[0].creditScore - 17, equifax: filteredByScore[0].creditScore - 8, crif: filteredByScore[0].creditScore + 21 },
-                    { month: 'Jun', cibil: filteredByScore[0].creditScore, experian: filteredByScore[0].creditScore - 17, equifax: filteredByScore[0].creditScore - 8, crif: filteredByScore[0].creditScore + 22 },
-                  ]}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis domain={[300, 900]} />
-                    <Tooltip />
-                    <Legend />
-                    <Line type="monotone" dataKey="cibil" stroke="#3b82f6" name="CIBIL" strokeWidth={2} />
-                    <Line type="monotone" dataKey="experian" stroke="#10b981" name="Experian" strokeWidth={2} />
-                    <Line type="monotone" dataKey="equifax" stroke="#f59e0b" name="Equifax" strokeWidth={2} />
-                    <Line type="monotone" dataKey="crif" stroke="#8b5cf6" name="CRIF" strokeWidth={2} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
+          <TabsContent value="lookup">
+            <div className="space-y-8">
+              <Card className="bg-white/90 backdrop-blur-sm border border-slate-200 shadow-xl rounded-xl overflow-hidden">
+                <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-100">
+                  <CardTitle className="flex items-center gap-2 text-slate-800">
+                    <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+                    Credit Score Lookup
+                  </CardTitle>
+                  <CardDescription>Search and verify user credit scores</CardDescription>
+                </CardHeader>
+
+                <CardContent className="p-6">
+                  <div className="flex space-x-4 mb-6">
+                    <Input
+                      placeholder="Enter full User ID, Name or Email"
+                      value={searchUser}
+                      onChange={(e) => {
+                        setSearchUser(e.target.value);
+                        setLookupSubmitted(false);       // typing clears last submitted result
+                        setLookupResult(null);
+                      }}
+                      className="w-full bg-white/80 backdrop-blur-sm border-slate-200 focus:border-blue-400 transition-all duration-200"
+                    />
+                    <Button
+                      className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white"
+                      onClick={() => {
+                        const q = (searchUser || "").trim().toLowerCase();
+                        if (!q) {
+                          setLookupSubmitted(true);
+                          setLookupResult(null);
+                          return;
+                        }
+
+                        // exact match only (case-insensitive). Phone ignores spaces.
+                        const match = customers.find((c) => {
+                          const name = (c.name || "").trim().toLowerCase();
+                          const email = (c.email || "").trim().toLowerCase();
+                          const id = String(c.id || "").trim().toLowerCase();
+                          const phone = String(c.phone || "").replace(/\s+/g, "").toLowerCase();
+                          const qPhone = q.replace(/\s+/g, "");
+                          return name === q || email === q || id === q || phone === qPhone;
+                        });
+
+                        setLookupSubmitted(true);
+                        setLookupResult(match || null);
+                      }}
+                    >
+                      🔍 Search
+                    </Button>
+                  </div>
+
+                  {/* Results (only after pressing Search) */}
+                  {lookupSubmitted && lookupResult && (
+                    <div className="space-y-8">
+                      {/* Name + meta */}
+                      <div className="mb-6">
+                        <h3 className="text-lg font-semibold text-slate-800">
+                          Customer: {lookupResult.name}
+                        </h3>
+                        <p className="text-sm text-slate-600">
+                          User ID: {lookupResult.id} | Email: {lookupResult.email}
+                        </p>
+                      </div>
+
+                      {/* Credit Score History Chart */}
+                      <div>
+                        <h3 className="text-lg font-semibold mb-4">Credit Score History</h3>
+                        <p className="text-sm text-slate-600 mb-4">
+                          Track how your credit scores have changed across all bureaus
+                        </p>
+                        <div className="h-64">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart
+                              data={[
+                                { month: 'Jan', cibil: lookupResult.creditScore - 50, experian: lookupResult.creditScore - 34, equifax: lookupResult.creditScore - 25, crif: lookupResult.creditScore + 5 },
+                                { month: 'Feb', cibil: lookupResult.creditScore - 30, experian: lookupResult.creditScore - 24, equifax: lookupResult.creditScore - 18, crif: lookupResult.creditScore + 12 },
+                                { month: 'Mar', cibil: lookupResult.creditScore - 20, experian: lookupResult.creditScore - 19, equifax: lookupResult.creditScore - 12, crif: lookupResult.creditScore + 18 },
+                                { month: 'Apr', cibil: lookupResult.creditScore - 10, experian: lookupResult.creditScore - 18, equifax: lookupResult.creditScore - 9, crif: lookupResult.creditScore + 20 },
+                                { month: 'May', cibil: lookupResult.creditScore - 5, experian: lookupResult.creditScore - 17, equifax: lookupResult.creditScore - 8, crif: lookupResult.creditScore + 21 },
+                                { month: 'Jun', cibil: lookupResult.creditScore, experian: lookupResult.creditScore - 17, equifax: lookupResult.creditScore - 8, crif: lookupResult.creditScore + 22 },
+                              ]}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="month" />
+                              <YAxis domain={[300, 900]} />
+                              <Tooltip />
+                              <Legend />
+                              <Line type="monotone" dataKey="cibil" stroke="#3b82f6" name="CIBIL" strokeWidth={2} />
+                              <Line type="monotone" dataKey="experian" stroke="#10b981" name="Experian" strokeWidth={2} />
+                              <Line type="monotone" dataKey="equifax" stroke="#f59e0b" name="Equifax" strokeWidth={2} />
+                              <Line type="monotone" dataKey="crif" stroke="#8b5cf6" name="CRIF" strokeWidth={2} />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+
+                      {/* Bureau Scores */}
+                      <div>
+                        <h3 className="text-lg font-semibold mb-4">Bureau Scores</h3>
+                        <p className="text-sm text-slate-600 mb-4">Current credit scores from all reporting bureaus</p>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                          <AnimatedSpeedometer bureauName="CIBIL" score={lookupResult.creditScore} range="300-900" peerAverage={75} postAverage={82} />
+                          <AnimatedSpeedometer bureauName="Experian" score={lookupResult.creditScore - 17} range="300-900" peerAverage={72} postAverage={78} />
+                          <AnimatedSpeedometer bureauName="Equifax" score={lookupResult.creditScore - 8} range="300-900" peerAverage={68} postAverage={74} />
+                          <AnimatedSpeedometer bureauName="CRIF" score={lookupResult.creditScore + 22} range="300-900" peerAverage={79} postAverage={85} />
+                        </div>
+
+                        <div className="mt-6 p-4 bg-slate-50 rounded-lg">
+                          <div className="flex items-center">
+                            <div className="w-3 h-3 bg-blue-600 rounded-full mr-2"></div>
+                            <span className="font-medium">Average Score:</span>
+                            <span className="ml-2 font-bold text-blue-700">
+                              {Math.round(
+                                (lookupResult.creditScore +
+                                  (lookupResult.creditScore - 17) +
+                                  (lookupResult.creditScore - 8) +
+                                  (lookupResult.creditScore + 22)) / 4
+                              )}
+                            </span>
+                          </div>
+                          <p className="text-sm text-slate-600 mt-2">
+                            This matches the customer's main credit score of {lookupResult.creditScore}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {lookupSubmitted && !lookupResult && (
+                    <div className="text-center py-8">
+                      <div className="text-slate-400 mb-2">No user found with that exact value</div>
+                      <div className="text-sm text-slate-500">Search requires full name, full email, exact ID, or exact phone</div>
+                    </div>
+                  )}
+
+                  {!lookupSubmitted && (
+                    <div className="text-center py-8">
+                      <div className="text-slate-400 mb-2">Enter a search term to look up credit information</div>
+                      <div className="text-sm text-slate-500">Exact match only (case-insensitive)</div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
-            
-            {/* Bureau Scores - Semi-circular Speedometers */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Bureau Scores</h3>
-              <p className="text-sm text-slate-600 mb-4">Current credit scores from all reporting bureaus</p>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {/* CIBIL Score */}
-                <AnimatedSpeedometer 
-                  bureauName="CIBIL" 
-                  score={filteredByScore[0].creditScore} 
-                  range="300-900" 
-                  peerAverage={75} 
-                  postAverage={82} 
-                />
-                
-                {/* Experian Score */}
-                <AnimatedSpeedometer 
-                  bureauName="Experian" 
-                  score={filteredByScore[0].creditScore - 17} 
-                  range="300-900" 
-                  peerAverage={72} 
-                  postAverage={78} 
-                />
-                
-                {/* Equifax Score */}
-                <AnimatedSpeedometer 
-                  bureauName="Equifax" 
-                  score={filteredByScore[0].creditScore - 8} 
-                  range="300-900" 
-                  peerAverage={68} 
-                  postAverage={74} 
-                />
-                
-                {/* CRIF Score */}
-                <AnimatedSpeedometer 
-                  bureauName="CRIF" 
-                  score={filteredByScore[0].creditScore + 22} 
-                  range="300-900" 
-                  peerAverage={79} 
-                  postAverage={85} 
-                />
-              </div>
-              
-              <div className="mt-6 p-4 bg-slate-50 rounded-lg">
-                <div className="flex items-center">
-                  <div className="w-3 h-3 bg-blue-600 rounded-full mr-2"></div>
-                  <span className="font-medium">Average Score:</span>
-                  <span className="ml-2 font-bold text-blue-700">
-                    {Math.round((
-                      filteredByScore[0].creditScore + 
-                      (filteredByScore[0].creditScore - 17) + 
-                      (filteredByScore[0].creditScore - 8) + 
-                      (filteredByScore[0].creditScore + 22)
-                    ) / 4)}
-                  </span>
-                </div>
-                <p className="text-sm text-slate-600 mt-2">
-                  This matches the customer's main credit score of {filteredByScore[0].creditScore}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-        
-        {searchUser && filteredByScore.length === 0 && (
-          <div className="text-center py-8">
-            <div className="text-slate-400 mb-2">No user found with that search criteria</div>
-            <div className="text-sm text-slate-500">Try searching by name, email, or user ID</div>
-          </div>
-        )}
-        
-        {!searchUser && (
-          <div className="text-center py-8">
-            <div className="text-slate-400 mb-2">Enter a search term to look up credit information</div>
-            <div className="text-sm text-slate-500">Try searching for one of the users from the customer list</div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  </div>
-</TabsContent>
+          </TabsContent>
+
+
         </Tabs>
       </div>
+      {selectedCustomer && (
+        <CustomerDetailModal
+          customer={selectedCustomer}
+          isOpen={isDetailModalOpen}
+          onClose={() => setIsDetailModalOpen(false)}
+          onSave={(updated) =>
+            setCustomers(prev => prev.map(c => c.id === updated.id ? updated : c))
+          }
+          isEditing={isEditingCustomer}
+          onEdit={() => setIsEditingCustomer(true)}
+        />
+      )}
+
+      {selectedBank && (
+        <BankDetailModal
+          bank={selectedBank}
+          isOpen={isBankDetailModalOpen}
+          onClose={() => setIsBankDetailModalOpen(false)}
+          onSave={(updated) =>
+            setBanks(prev => prev.map(b => b.id === updated.id ? updated : b))
+          }
+          isEditing={isEditingBank}
+          onEdit={() => setIsEditingBank(true)}
+        />
+      )}
     </div>
   );
 };
