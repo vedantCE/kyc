@@ -1,0 +1,4 @@
+Connect to Cluster0
+vedant
+Vedant@2006
+mongodb+srv://vedantbhattce28:Vedant@2006@cluster0.zw6mwh5.mongodb.net/kyc
