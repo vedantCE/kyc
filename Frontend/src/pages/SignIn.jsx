@@ -43,15 +43,13 @@ const SignIn = () => {
           description: "You have been successfully signed in.",
         });
 
-        // Redirect based on email domain
-        if (email.endsWith("@admin.com")) {
+        // Redirect based on user role from backend
+        if (data.user.role === "admin") {
           navigate("/admin-dashboard");
-        } else if (email.endsWith("@bank.com")) {
+        } else if (data.user.role === "bank") {
           navigate("/bank-dashboard");
-        } else if (email.endsWith("@gmail.com")) {
-          navigate("/user-dashboard");
         } else {
-          navigate("/user-dashboard"); // default fallback
+          navigate("/user-dashboard");
         }
       } else {
         toast({
