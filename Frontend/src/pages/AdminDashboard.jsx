@@ -50,6 +50,11 @@ import AnimatedSpeedometer from "@/components/AnimatedSpeedometer";
 // ================= Customer Detail Modal =================
 const CustomerDetailModal = ({ customer, isOpen, onClose, onSave, isEditing, onEdit }) => {
   const [editedCustomer, setEditedCustomer] = useState(customer);
+  
+  useEffect(() => {
+    setEditedCustomer(customer);
+  }, [customer]);
+  
   if (!isOpen) return null;
 
   const handleChange = (field, value) => {
@@ -63,7 +68,8 @@ const CustomerDetailModal = ({ customer, isOpen, onClose, onSave, isEditing, onE
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-      <div className="absolute inset-0 bg-black bg-opacity-30" onClick={onClose}></div>
+      {/* Updated background with blur effect */}
+      <div className="absolute inset-0 bg-black/20 backdrop-blur-md" onClick={onClose}></div>
       <div className="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto relative z-10">
         <div className="flex justify-between items-center p-6 border-b">
           <h2 className="text-2xl font-bold text-slate-800">
@@ -75,45 +81,45 @@ const CustomerDetailModal = ({ customer, isOpen, onClose, onSave, isEditing, onE
         </div>
         <div className="p-6 space-y-4">
           <div>
-            <label className="text-sm">Name</label>
+            <label className="text-sm font-medium text-slate-700 mb-1 block">Name</label>
             {isEditing ? (
               <Input value={editedCustomer.name} onChange={(e) => handleChange('name', e.target.value)} />
             ) : (
-              <div>{customer.name}</div>
+              <div className="text-slate-900">{customer.name}</div>
             )}
           </div>
           <div>
-            <label className="text-sm">Email</label>
+            <label className="text-sm font-medium text-slate-700 mb-1 block">Email</label>
             {isEditing ? (
               <Input value={editedCustomer.email} onChange={(e) => handleChange('email', e.target.value)} />
             ) : (
-              <div className="flex items-center">
+              <div className="flex items-center text-slate-900">
                 <Mail className="h-4 w-4 mr-2" /> {customer.email}
               </div>
             )}
           </div>
           <div>
-            <label className="text-sm">Phone</label>
+            <label className="text-sm font-medium text-slate-700 mb-1 block">Phone</label>
             {isEditing ? (
               <Input value={editedCustomer.phone} onChange={(e) => handleChange('phone', e.target.value)} />
             ) : (
-              <div className="flex items-center">
+              <div className="flex items-center text-slate-900">
                 <Phone className="h-4 w-4 mr-2" /> {customer.phone}
               </div>
             )}
           </div>
           <div>
-            <label className="text-sm">City</label>
+            <label className="text-sm font-medium text-slate-700 mb-1 block">City</label>
             {isEditing ? (
               <Input value={editedCustomer.city} onChange={(e) => handleChange('city', e.target.value)} />
             ) : (
-              <div className="flex items-center">
+              <div className="flex items-center text-slate-900">
                 <MapPin className="h-4 w-4 mr-2" /> {customer.city}
               </div>
             )}
           </div>
         </div>
-        <div className="flex justify-end space-x-3 p-4 border-t">
+        <div className="flex justify-end space-x-3 p-6 border-t">
           {isEditing ? (
             <>
               <Button variant="outline" onClick={onClose}>Cancel</Button>
@@ -135,6 +141,151 @@ const CustomerDetailModal = ({ customer, isOpen, onClose, onSave, isEditing, onE
   );
 };
 
+// ================= Bank Detail Modal =================
+const BankDetailModal = ({ bank, isOpen, onClose, onSave, isEditing, onEdit }) => {
+  const [editedBank, setEditedBank] = useState(bank);
+
+  useEffect(() => {
+    setEditedBank(bank);
+  }, [bank]);
+
+  if (!isOpen || !bank) return null;
+
+  const handleChange = (field, value) => {
+    setEditedBank(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSave = () => {
+    onSave(editedBank);
+    onClose();
+  };
+
+  const statusBadge = (status) => {
+    if (status === "Active")
+      return <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">Active</Badge>;
+    if (status === "Suspended")
+      return <Badge className="bg-red-100 text-red-700 border-red-200">Suspended</Badge>;
+    return <Badge variant="outline">{status}</Badge>;
+  };
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+      {/* Updated background with blur effect */}
+      <div className="absolute inset-0 bg-black/20 backdrop-blur-md" onClick={onClose}></div>
+      <div className="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto relative z-10">
+        <div className="flex justify-between items-center p-6 border-b">
+          <h2 className="text-2xl font-bold text-slate-800">
+            {isEditing ? "Manage Bank" : "Bank Details"}
+          </h2>
+          <button onClick={onClose} className="text-slate-500 hover:text-slate-700">
+            <X size={24} />
+          </button>
+        </div>
+
+        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* ID (read-only) */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Bank ID</label>
+            <div className="text-slate-900 font-medium">{bank.id}</div>
+          </div>
+
+          {/* Name */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Bank Name</label>
+            {isEditing ? (
+              <Input value={editedBank.name || ""} onChange={(e) => handleChange("name", e.target.value)} />
+            ) : (<div className="text-slate-900">{bank.name}</div>)}
+          </div>
+
+          {/* Email */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+            {isEditing ? (
+              <Input value={editedBank.email || ""} onChange={(e) => handleChange("email", e.target.value)} />
+            ) : (<div className="text-slate-900">{bank.email}</div>)}
+          </div>
+
+          {/* Totals */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Total Customers</label>
+            {isEditing ? (
+              <Input
+                type="number"
+                value={editedBank.totalCustomers ?? ""}
+                onChange={(e) => handleChange("totalCustomers", Number(e.target.value))}
+              />
+            ) : (<div className="text-slate-900">{bank.totalCustomers?.toLocaleString?.() ?? bank.totalCustomers}</div>)}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Total Applications</label>
+            {isEditing ? (
+              <Input
+                type="number"
+                value={editedBank.totalApplications ?? ""}
+                onChange={(e) => handleChange("totalApplications", Number(e.target.value))}
+              />
+            ) : (<div className="text-slate-900">{bank.totalApplications?.toLocaleString?.() ?? bank.totalApplications}</div>)}
+          </div>
+
+          {/* Approval rate */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Approval Rate (%)</label>
+            {isEditing ? (
+              <Input
+                type="number"
+                value={editedBank.approvalRate ?? ""}
+                onChange={(e) => handleChange("approvalRate", Number(e.target.value))}
+              />
+            ) : (<div className="text-slate-900">{bank.approvalRate}%</div>)}
+          </div>
+
+          {/* Status */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
+            {isEditing ? (
+              <Select value={editedBank.status || ""} onValueChange={(v) => handleChange("status", v)}>
+                <SelectTrigger><SelectValue placeholder="Select status" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Active">Active</SelectItem>
+                  <SelectItem value="Suspended">Suspended</SelectItem>
+                </SelectContent>
+              </Select>
+            ) : (<div>{statusBadge(bank.status)}</div>)}
+          </div>
+
+          {/* API Calls & Last Active (read-only) */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">API Calls</label>
+            <div className="text-slate-900">{bank.apiCalls?.toLocaleString?.() ?? bank.apiCalls}</div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Last Active</label>
+            <div className="text-slate-900">{bank.lastActive}</div>
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-2 p-6 border-t">
+          {isEditing ? (
+            <>
+              <Button variant="outline" onClick={onClose}>Cancel</Button>
+              <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700">
+                <Save className="mr-2 h-4 w-4" /> Save Changes
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="outline" onClick={onClose}>Close</Button>
+              <Button onClick={onEdit} className="bg-blue-600 hover:bg-blue-700">
+                <Edit className="mr-2 h-4 w-4" /> Manage
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const AdminDashboard = () => {
   const [searchUser, setSearchUser] = useState("");
@@ -144,7 +295,6 @@ const AdminDashboard = () => {
   // strict lookup states (add near searchUser/searchScore)
   const [lookupResult, setLookupResult] = useState(null);
   const [lookupSubmitted, setLookupSubmitted] = useState(false);
-
 
   // Customer modal state
   const [selectedCustomer, setSelectedCustomer] = useState(null);
@@ -160,7 +310,7 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
 
   // Mock admin data
-  const customers = [
+  const [customers, setCustomers] = useState([
     {
       id: "USR001",
       name: "Rajesh Kumar",
@@ -233,189 +383,9 @@ const AdminDashboard = () => {
       totalLoans: 4,
       city: "Pune"
     }
-  ];
+  ]);
 
-  const BankDetailModal = ({ bank, isOpen, onClose, onSave, isEditing, onEdit }) => {
-    const [editedBank, setEditedBank] = useState(bank);
-
-    useEffect(() => {
-      setEditedBank(bank);
-    }, [bank]);
-
-    if (!isOpen || !bank) return null;
-
-    const handleChange = (field, value) => {
-      setEditedBank(prev => ({ ...prev, [field]: value }));
-    };
-
-    const handleSave = () => {
-      onSave(editedBank);
-      onClose();
-    };
-
-    const statusBadge = (status) => {
-      if (status === "Active")
-        return <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">Active</Badge>;
-      if (status === "Suspended")
-        return <Badge className="bg-red-100 text-red-700 border-red-200">Suspended</Badge>;
-      return <Badge variant="outline">{status}</Badge>;
-    };
-
-    return (
-      <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-        <div className="absolute inset-0 bg-black bg-opacity-30" onClick={onClose}></div>
-        <div className="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto relative z-10">
-          <div className="flex justify-between items-center p-6 border-b">
-            <h2 className="text-2xl font-bold text-slate-800">
-              {isEditing ? "Manage Bank" : "Bank Details"}
-            </h2>
-            <button onClick={onClose} className="text-slate-500 hover:text-slate-700">
-              <X size={24} />
-            </button>
-          </div>
-
-          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* ID (read-only) */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Bank ID</label>
-              <div className="text-slate-900 font-medium">{bank.id}</div>
-            </div>
-
-            {/* Name */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Bank Name</label>
-              {isEditing ? (
-                <Input value={editedBank.name || ""} onChange={(e) => handleChange("name", e.target.value)} />
-              ) : (<div className="text-slate-900">{bank.name}</div>)}
-            </div>
-
-            {/* Email */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
-              {isEditing ? (
-                <Input value={editedBank.email || ""} onChange={(e) => handleChange("email", e.target.value)} />
-              ) : (<div className="text-slate-900">{bank.email}</div>)}
-            </div>
-
-            {/* Totals */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Total Customers</label>
-              {isEditing ? (
-                <Input
-                  type="number"
-                  value={editedBank.totalCustomers ?? ""}
-                  onChange={(e) => handleChange("totalCustomers", Number(e.target.value))}
-                />
-              ) : (<div className="text-slate-900">{bank.totalCustomers?.toLocaleString?.() ?? bank.totalCustomers}</div>)}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Total Applications</label>
-              {isEditing ? (
-                <Input
-                  type="number"
-                  value={editedBank.totalApplications ?? ""}
-                  onChange={(e) => handleChange("totalApplications", Number(e.target.value))}
-                />
-              ) : (<div className="text-slate-900">{bank.totalApplications?.toLocaleString?.() ?? bank.totalApplications}</div>)}
-            </div>
-
-            {/* Approval rate */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Approval Rate (%)</label>
-              {isEditing ? (
-                <Input
-                  type="number"
-                  value={editedBank.approvalRate ?? ""}
-                  onChange={(e) => handleChange("approvalRate", Number(e.target.value))}
-                />
-              ) : (<div className="text-slate-900">{bank.approvalRate}%</div>)}
-            </div>
-
-            {/* Status */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
-              {isEditing ? (
-                <Select value={editedBank.status || ""} onValueChange={(v) => handleChange("status", v)}>
-                  <SelectTrigger><SelectValue placeholder="Select status" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Active">Active</SelectItem>
-                    <SelectItem value="Suspended">Suspended</SelectItem>
-                  </SelectContent>
-                </Select>
-              ) : (<div>{statusBadge(bank.status)}</div>)}
-            </div>
-
-            {/* API Calls & Last Active (read-only) */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">API Calls</label>
-              <div className="text-slate-900">{bank.apiCalls?.toLocaleString?.() ?? bank.apiCalls}</div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Last Active</label>
-              <div className="text-slate-900">{bank.lastActive}</div>
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-2 p-4 border-t">
-            {isEditing ? (
-              <>
-                <Button variant="outline" onClick={onClose}>Cancel</Button>
-                <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700">
-                  <Save className="mr-2 h-4 w-4" /> Save Changes
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button variant="outline" onClick={onClose}>Close</Button>
-                <Button onClick={onEdit} className="bg-blue-600 hover:bg-blue-700">
-                  <Edit className="mr-2 h-4 w-4" /> Manage
-                </Button>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-
-  // customer
-  const handleViewCustomer = (c) => {
-    setSelectedCustomer(c);
-    setIsDetailModalOpen(true);
-    setIsEditingCustomer(false);
-  };
-  const handleEditCustomer = (c) => {
-    setSelectedCustomer(c);
-    setIsDetailModalOpen(true);
-    setIsEditingCustomer(true);
-  };
-
-  // bank
-  const handleViewBank = (b) => {
-    setSelectedBank(b);
-    setIsBankDetailModalOpen(true);
-    setIsEditingBank(false);
-  };
-  const handleManageBank = (b) => {
-    setSelectedBank(b);
-    setIsBankDetailModalOpen(true);
-    setIsEditingBank(true);
-  };
-
-  const totalCustomers = 45267;
-  const totalLoansApproved = 8934;
-  const websiteVisits = 127543;
-  const totalApplications = customers.length; // Dynamic count based on customer data
-
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate("/signin");
-  };
-
-
-  const banks = [
+  const [banks, setBanks] = useState([
     {
       id: "BNK001",
       name: "HDFC Bank",
@@ -460,7 +430,43 @@ const AdminDashboard = () => {
       apiCalls: 8970,
       lastActive: "3 min ago"
     }
-  ];
+  ]);
+
+  // customer
+  const handleViewCustomer = (c) => {
+    setSelectedCustomer(c);
+    setIsDetailModalOpen(true);
+    setIsEditingCustomer(false);
+  };
+  
+  const handleEditCustomer = (c) => {
+    setSelectedCustomer(c);
+    setIsDetailModalOpen(true);
+    setIsEditingCustomer(true);
+  };
+
+  // bank
+  const handleViewBank = (b) => {
+    setSelectedBank(b);
+    setIsBankDetailModalOpen(true);
+    setIsEditingBank(false);
+  };
+  
+  const handleManageBank = (b) => {
+    setSelectedBank(b);
+    setIsBankDetailModalOpen(true);
+    setIsEditingBank(true);
+  };
+
+  const totalCustomers = 45267;
+  const totalLoansApproved = 8934;
+  const websiteVisits = 127543;
+  const totalApplications = customers.length; // Dynamic count based on customer data
+
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/signin");
+  };
 
   const websiteAnalytics = [
     { date: '2024-08-01', visits: 4200, newUsers: 320, bounceRate: 42 },
