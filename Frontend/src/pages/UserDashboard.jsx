@@ -28,6 +28,8 @@ import {
   FileCheck,
   Bell,
   BellOff,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { PayBillsModal } from "@/components/modals/PayBillsModal";
 import { ReduceUtilizationModal } from "@/components/modals/ReduceUtilizationModal";
@@ -316,7 +318,7 @@ const LoanApplicationDetailsModal = ({ isOpen, onClose, application }) => {
               <p className="text-xs text-gray-700 font-medium">Address</p>
               <p className="text-sm text-black">
                 {application.applicant.address || "-"}
-              </p>
+                </p>
             </div>
             <div>
               <p className="text-xs text-gray-700 font-medium">Purpose</p>
@@ -706,7 +708,7 @@ const LoanApplicationModal = ({
                 value={form.interestRate}
                 onChange={(e) => handleChange("interestRate", e.target.value)}
                 placeholder="10.5"
-              />
+                 />
             </div>
 
             <div className="col-span-1 md:col-span-2 space-y-2">
@@ -1010,44 +1012,61 @@ const UserDashboard = () => {
     },
   ];
 
+  // Updated credit history with 4 weeks of data for Vedant Bhatt
   const creditHistory = [
     {
-      event: "HDFC Credit Card Payment",
+      event: "Week 4 - Credit Score Update",
       date: "2024-08-13",
-      status: "Paid on time",
+      status: "Increased by 15 points",
       impact: "+",
-      details: "₹8,500 payment made before due date.",
+      details: "✅ Regularly paying EMIs/credit card bills. ✅ Keeping utilization < 30%.",
+      score: 742,
+      change: "+15",
     },
     {
-      event: "SBI Home Loan",
-      date: "2024-08-05",
-      status: "Approved",
-      impact: "+",
-      details: "Home loan for ₹25,00,000 approved.",
-    },
-    {
-      event: "CIBIL Inquiry",
-      date: "2024-07-30",
-      status: "Soft inquiry",
-      impact: "Neutral",
-      details: "Credit score checked, no negative impact.",
-    },
-    {
-      event: "Car Loan Application",
-      date: "2024-07-08",
-      status: "Rejected",
+      event: "Week 3 - Credit Score Update",
+      date: "2024-08-06",
+      status: "Decreased by 5 points",
       impact: "-",
-      details: "Car loan application rejected due to low income.",
+      details: "❌ High utilization (using 80–100% of card limit).",
+      score: 727,
+      change: "-5",
+    },
+    {
+      event: "Week 2 - Credit Score Update",
+      date: "2024-07-30",
+      status: "Increased by 10 points",
+      impact: "+",
+      details: "✅ Regularly paying EMIs/credit card bills.",
+      score: 732,
+      change: "+10",
+    },
+    {
+      event: "Week 1 - Credit Score Update",
+      date: "2024-07-23",
+      status: "Decreased by 8 points",
+      impact: "-",
+      details: "❌ Too many new loan/credit applications in short span.",
+      score: 722,
+      change: "-8",
+    },
+    {
+      event: "Initial Credit Score",
+      date: "2024-07-16",
+      status: "Starting Score",
+      impact: "Neutral",
+      details: "Initial credit score for Vedant Bhatt",
+      score: 730,
+      change: "0",
     },
   ];
 
+  // Data for the credit score trend graph
   const creditScoreHistory = [
-    { month: "Jan", score: creditScore - 50 },
-    { month: "Feb", score: creditScore - 30 },
-    { month: "Mar", score: creditScore - 20 },
-    { month: "Apr", score: creditScore - 10 },
-    { month: "May", score: creditScore - 5 },
-    { month: "Jun", score: creditScore },
+    { month: "Week 1", score: 722 },
+    { month: "Week 2", score: 732 },
+    { month: "Week 3", score: 727 },
+    { month: "Week 4", score: 742 },
   ];
 
   const faqs = [
@@ -1712,40 +1731,116 @@ const UserDashboard = () => {
                     <p className="text-sm text-slate-600 mt-2">
                       Your scores are updated monthly. Keep making timely payments to improve them!
                     </p>
-                  </div>
+                    </div>
                 </CardContent>
               </Card>
             </div>
           </TabsContent>
           <TabsContent value="improve">
-            <Card>
-              <CardHeader>
-                <CardTitle>Credit Score Trend</CardTitle>
-                <CardDescription>
-                  Track your credit score progress over recent months
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={400}>
-                  <LineChart
-                    data={creditScoreHistory}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" interval={0} />
-                    <YAxis domain={[600, 900]} />
-                    <Tooltip />
-                    <Line
-                      type="monotone"
-                      dataKey="score"
-                      stroke="#3b82f6"
-                      strokeWidth={3}
-                      dot={{ r: 5 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Credit Score Trend - Vedant Bhatt</CardTitle>
+                  <CardDescription>
+                    Track your credit score progress over the last 4 weeks
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart
+                      data={creditScoreHistory}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e6eef8" />
+                      <XAxis dataKey="month" interval={0} stroke="#3b82f6" />
+                      <YAxis domain={[700, 750]} stroke="#3b82f6" />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: "white", 
+                          borderColor: "#3b82f6",
+                          borderRadius: "8px"
+                        }} 
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="score"
+                        stroke="#3b82f6"
+                        strokeWidth={3}
+                        dot={{ r: 5, fill: "#3b82f6" }}
+                        activeDot={{ r: 8, fill: "#1d4ed8" }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Credit Score History - Vedant Bhatt</CardTitle>
+                  <CardDescription>
+                    Detailed breakdown of your credit score changes over the last 4 weeks
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {creditHistory.map((history, index) => (
+                      <Card
+                        key={index}
+                        className="border-l-4 border-l-blue-500 bg-white hover:bg-blue-50 transition-all duration-300 shadow-md hover:shadow-lg"
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex justify-between items-start">
+                            <div className="space-y-2">
+                              <div className="flex items-center space-x-2">
+                                <h3 className="font-semibold text-lg text-blue-800">
+                                  {history.event}
+                                </h3>
+                                {history.change !== "0" && (
+                                  <Badge
+                                    variant="outline"
+                                    className={
+                                      history.impact === "+"
+                                        ? "bg-green-100 text-green-800 border-green-200 text-sm"
+                                        : history.impact === "-"
+                                        ? "bg-red-100 text-red-800 border-red-200 text-sm"
+                                        : "bg-gray-100 text-gray-800 border-gray-200 text-sm"
+                                    }
+                                  >
+                                    {history.change}
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="text-sm text-blue-600">
+                                {history.date}
+                              </p>
+                              <p className="text-base font-medium text-blue-800">
+                                {history.status}
+                              </p>
+                              <p className="text-sm text-blue-600">
+                                {history.details}
+                              </p>
+                            </div>
+                            <div className="text-right space-y-1">
+                              <div className="flex items-center justify-end space-x-1">
+                                {history.impact === "+" && (
+                                  <ArrowUp className="h-5 w-5 text-green-600" />
+                                )}
+                                {history.impact === "-" && (
+                                  <ArrowDown className="h-5 w-5 text-red-600" />
+                                )}
+                                <span className={`text-xl font-bold ${getScoreColor(history.score)}`}>
+                                  {history.score}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
           <TabsContent value="calculator">
             <Card>
