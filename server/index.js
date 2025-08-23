@@ -3,12 +3,17 @@ const mongoose=require('mongoose');
 const cors=require("cors");
 const EmployeeModel=require('./models/Employee');
 
+const MONGO_URI="mongodb+srv://vedantbhattce28:3yhEkDTd5S8fKFAs@cluster1.dbi1j2u.mongodb.net/kycDB?retryWrites=true&w=majority"
+
 const app=express();
 app.use(express.json());
 app.use(cors());
 
-mongoose.connect("mongodb://127.0.0.1:27017/employee")
+mongoose.connect(MONGO_URI)
+  .then(() => console.log('Atlas Connected Successfully'))
+  .catch(err => console.error('Connection Error:', err.message));
 
+  
 app.post('/register',(req,res)=>{
    EmployeeModel.create(req.body)
    .then(user=>res.json({
