@@ -65,7 +65,6 @@ const CustomerDetailModal = ({ customer, isOpen, onClose, onSave, isEditing, onE
 
   const handleSave = () => {
     onSave(editedCustomer);
-    onClose();
   };
 
   return (
@@ -278,9 +277,6 @@ const BankDetailModal = ({ bank, isOpen, onClose, onSave, isEditing, onEdit }) =
           ) : (
             <>
               <Button variant="outline" onClick={onClose}>Close</Button>
-              <Button onClick={onEdit} className="bg-blue-600 hover:bg-blue-700">
-                <Edit className="mr-2 h-4 w-4" /> Manage
-              </Button>
             </>
           )}
         </div>
@@ -461,6 +457,15 @@ const AdminDashboard = () => {
     }
   ]);
 
+  // Update customer in the customers array
+  const updateCustomer = (updatedCustomer) => {
+    setCustomers(prevCustomers => 
+      prevCustomers.map(customer => 
+        customer.id === updatedCustomer.id ? updatedCustomer : customer
+      )
+    );
+  };
+
   // customer
   const handleViewCustomer = (c) => {
     setSelectedCustomer(c);
@@ -472,6 +477,12 @@ const AdminDashboard = () => {
     setSelectedCustomer(c);
     setIsDetailModalOpen(true);
     setIsEditingCustomer(true);
+  };
+
+  const handleSaveCustomer = (updatedCustomer) => {
+    updateCustomer(updatedCustomer);
+    setSelectedCustomer(updatedCustomer);
+    setIsEditingCustomer(false);
   };
 
   // bank
@@ -772,15 +783,12 @@ const AdminDashboard = () => {
                     <div className="relative">
                       <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                       <Input
-                        placeholder="Search customers..."
+                        placeholder=" 🔍Search customers..."
                         value={searchUser}
                         onChange={(e) => setSearchUser(e.target.value)}
                         className="pl-10 w-64 bg-white/80 backdrop-blur-sm border-slate-200 focus:border-blue-400 transition-all duration-200"
                       />
                     </div>
-                    <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white">
-                      Export Data
-                    </Button>
                   </div>
                 </div>
               </CardHeader>
@@ -911,9 +919,6 @@ const AdminDashboard = () => {
                               className="bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100 hover:bg-blue-100"
                             >
                               Details
-                            </Button>
-                            <Button variant="outline" size="sm" className="bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100" onClick={() => handleManageBank(bank)}>
-                              Manage
                             </Button>
                           </div>
                         </TableCell>
@@ -1244,24 +1249,7 @@ const AdminDashboard = () => {
           customer={selectedCustomer}
           isOpen={isDetailModalOpen}
           onClose={() => setIsDetailModalOpen(false)}
-          onSave={async (updated) => {
-            try {
-              const response = await api.updateUser(updated.id, {
-                firstName: updated.name.split(' ')[0],
-                lastName: updated.name.split(' ').slice(1).join(' '),
-                email: updated.email,
-                phoneNumber: updated.phone,
-                status: updated.status
-              });
-              
-              if (response.status === "Success") {
-                // Trigger immediate refresh of real-time data
-                realTimeSync.refreshAll();
-              }
-            } catch (error) {
-              console.error('Failed to update customer:', error);
-            }
-          }}
+          onSave={handleSaveCustomer}
           isEditing={isEditingCustomer}
           onEdit={() => setIsEditingCustomer(true)}
         />
