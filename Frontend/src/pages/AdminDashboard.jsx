@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { api } from "@/lib/api";
+import { realTimeSync } from "@/lib/realTimeSync";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
@@ -310,7 +312,7 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
 
   // Mock admin data
-  const [customers, setCustomers] = useState([
+  const mockCustomers = [
     {
       id: "USR001",
       name: "Rajesh Kumar",
@@ -383,7 +385,34 @@ const AdminDashboard = () => {
       totalLoans: 4,
       city: "Pune"
     }
-  ]);
+  ];
+
+  const [customers, setCustomers] = useState(mockCustomers);
+  const [signupLogs, setSignupLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Add real users to mock data
+  useEffect(() => {
+    setLoading(true);
+    
+    const unsubscribeUsers = realTimeSync.subscribe('users', (response) => {
+      if (response.status === "Success") {
+        setCustomers([...mockCustomers, ...response.users]);
+        setLoading(false);
+      }
+    }, 15000);
+    
+    const unsubscribeLogs = realTimeSync.subscribe('signupLogs', (response) => {
+      if (response.status === "Success") {
+        setSignupLogs(response.logs);
+      }
+    }, 10000);
+    
+    return () => {
+      unsubscribeUsers();
+      unsubscribeLogs();
+    };
+  }, []);
 
   const [banks, setBanks] = useState([
     {
@@ -458,10 +487,10 @@ const AdminDashboard = () => {
     setIsEditingBank(true);
   };
 
-  const totalCustomers = 45267;
+  const totalCustomers = 45267 + customers.length - mockCustomers.length;
   const totalLoansApproved = 8934;
   const websiteVisits = 127543;
-  const totalApplications = customers.length; // Dynamic count based on customer data
+  const totalApplications = customers.length;
 
   const handleLogout = () => {
     localStorage.clear();
@@ -720,11 +749,12 @@ const AdminDashboard = () => {
 
         {/* Enhanced Tabs */}
         <Tabs defaultValue="customers" className="space-y-8">
-          <TabsList className="grid w-full grid-cols-4 bg-white/90 backdrop-blur-sm border border-slate-200 shadow-xl p-1 rounded-xl">
+          <TabsList className="grid w-full grid-cols-5 bg-white/90 backdrop-blur-sm border border-slate-200 shadow-xl p-1 rounded-xl">
             <TabsTrigger value="customers" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white rounded-lg transition-all duration-200">Customer Management</TabsTrigger>
             <TabsTrigger value="banks" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white rounded-lg transition-all duration-200">Bank Performance</TabsTrigger>
             <TabsTrigger value="analytics" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white rounded-lg transition-all duration-200">Fund Analytics</TabsTrigger>
             <TabsTrigger value="lookup" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white rounded-lg transition-all duration-200">Credit Lookup</TabsTrigger>
+            <TabsTrigger value="logs" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white rounded-lg transition-all duration-200">Signup Logs</TabsTrigger>
           </TabsList>
 
           <TabsContent value="customers">
@@ -1153,6 +1183,59 @@ const AdminDashboard = () => {
             </div>
           </TabsContent>
 
+          <TabsContent value="logs">
+            <Card className="bg-white/90 backdrop-blur-sm border border-slate-200 shadow-xl rounded-xl overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-100">
+                <CardTitle className="flex items-center gap-2 text-slate-800">
+                  <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+                  Signup Logs
+                </CardTitle>
+                <CardDescription>Recent user registrations and system activity</CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                {loading ? (
+                  <div className="flex justify-center items-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader className="bg-slate-50/80">
+                      <TableRow>
+                        <TableHead className="font-semibold text-slate-700">User ID</TableHead>
+                        <TableHead className="font-semibold text-slate-700">Name</TableHead>
+                        <TableHead className="font-semibold text-slate-700">Email</TableHead>
+                        <TableHead className="font-semibold text-slate-700">Role</TableHead>
+                        <TableHead className="font-semibold text-slate-700">Status</TableHead>
+                        <TableHead className="font-semibold text-slate-700">Signup Date</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {signupLogs.map((log) => (
+                        <TableRow key={log.id} className="hover:bg-blue-50/50 transition-colors duration-200">
+                          <TableCell className="font-medium text-blue-700">{log.id}</TableCell>
+                          <TableCell className="font-medium text-slate-800">{log.name}</TableCell>
+                          <TableCell className="text-slate-600">{log.email}</TableCell>
+                          <TableCell>
+                            <Badge className={`${
+                              log.role === 'admin' ? 'bg-purple-100 text-purple-700' :
+                              log.role === 'bank' ? 'bg-blue-100 text-blue-700' :
+                              'bg-green-100 text-green-700'
+                            }`}>
+                              {log.role.charAt(0).toUpperCase() + log.role.slice(1)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{getStatusBadge(log.status)}</TableCell>
+                          <TableCell className="text-slate-600">
+                            {new Date(log.timestamp).toLocaleString()}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
         </Tabs>
       </div>
@@ -1161,9 +1244,24 @@ const AdminDashboard = () => {
           customer={selectedCustomer}
           isOpen={isDetailModalOpen}
           onClose={() => setIsDetailModalOpen(false)}
-          onSave={(updated) =>
-            setCustomers(prev => prev.map(c => c.id === updated.id ? updated : c))
-          }
+          onSave={async (updated) => {
+            try {
+              const response = await api.updateUser(updated.id, {
+                firstName: updated.name.split(' ')[0],
+                lastName: updated.name.split(' ').slice(1).join(' '),
+                email: updated.email,
+                phoneNumber: updated.phone,
+                status: updated.status
+              });
+              
+              if (response.status === "Success") {
+                // Trigger immediate refresh of real-time data
+                realTimeSync.refreshAll();
+              }
+            } catch (error) {
+              console.error('Failed to update customer:', error);
+            }
+          }}
           isEditing={isEditingCustomer}
           onEdit={() => setIsEditingCustomer(true)}
         />
