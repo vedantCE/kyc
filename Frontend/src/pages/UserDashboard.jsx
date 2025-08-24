@@ -30,6 +30,8 @@ import {
   BellOff,
   ArrowUp,
   ArrowDown,
+  ChevronDown, // Add this import
+  Search // Add this import if you want a search icon
 } from "lucide-react";
 import { PayBillsModal } from "@/components/modals/PayBillsModal";
 import { ReduceUtilizationModal } from "@/components/modals/ReduceUtilizationModal";
@@ -952,10 +954,10 @@ const UserDashboard = () => {
   // Mock data (same as original)
   const creditScore = 742;
   const riskLevel = "Low";
-  const lastUpdated = "2024-08-08";
-  const pendingLoans = 2;
-  const approvedLoans = 1;
-  const rejectedLoans = 0;
+  const lastUpdated = "2025-08-08";
+  // const pendingLoans = 2;
+  // const approvedLoans = 1;
+  // const rejectedLoans = 0;
 
   const recommendedLoans = [
     {
@@ -992,26 +994,26 @@ const UserDashboard = () => {
     },
   ];
 
-  const loanApplicationsInitial = [
-    {
-      id: "LA001",
-      bank: "HDFC Bank",
-      type: "Personal Loan",
-      amount: "₹3,00,000",
-      status: "Pending",
-      appliedDate: "2024-08-05",
-      expectedDecision: "2024-08-12",
-    },
-    {
-      id: "LA002",
-      bank: "SBI",
-      type: "Credit Card",
-      amount: "₹2,00,000",
-      status: "Approved",
-      appliedDate: "2024-07-28",
-      approvedDate: "2024-08-02",
-    },
-  ];
+  // const loanApplicationsInitial = [
+  //   {
+  //     id: "LA001",
+  //     bank: "HDFC Bank",
+  //     type: "Personal Loan",
+  //     amount: "₹3,00,000",
+  //     status: "Pending",
+  //     appliedDate: "2024-08-05",
+  //     expectedDecision: "2024-08-12",
+  //   },
+  //   {
+  //     id: "LA002",
+  //     bank: "SBI",
+  //     type: "Credit Card",
+  //     amount: "₹2,00,000",
+  //     status: "Approved",
+  //     appliedDate: "2024-07-28",
+  //     approvedDate: "2024-08-02",
+  //   },
+  // ];
 
   // Updated credit history with 4 weeks of data for Vedant Bhatt
   const creditHistory = [
@@ -1070,28 +1072,80 @@ const UserDashboard = () => {
     { month: "Week 4", score: 742 },
   ];
 
-  const faqs = [
-    {
-      question: "Why did my credit score decrease?",
-      answer:
-        "Credit scores can decrease due to late payments, high credit utilization, new credit inquiries, or account closures.",
-    },
-    {
-      question: "How often is my credit score updated?",
-      answer:
-        "Credit scores are typically updated monthly when lenders report payment information to credit bureaus.",
-    },
-    {
-      question: "What is a good credit utilization ratio?",
-      answer:
-        "A credit utilization ratio below 30% is considered good, but below 10% is excellent for your credit score.",
-    },
-    {
-      question: "How long do negative marks stay on my credit report?",
-      answer:
-        "Most negative marks stay on your credit report for 7 years, while bankruptcy can stay for up to 10 years.",
-    },
-  ];
+  const [faqs, setFaqs] = useState([
+  {
+    question: "Why did my credit score decrease?",
+    answer: "Credit scores can decrease due to late payments, high credit utilization, new credit inquiries, or account closures.",
+    additionalInfo: [
+      "Late payments can stay on your report for up to 7 years",
+      "Each credit application can cause a small, temporary drop",
+      "Closing old accounts can shorten your credit history length"
+    ]
+  },
+  {
+    question: "How often is my credit score updated?",
+    answer: "Credit scores are typically updated monthly when lenders report payment information to credit bureaus.",
+    additionalInfo: [
+      "Most lenders report to bureaus once a month",
+      "Updates may occur at different times for different bureaus",
+      "It can take 30-45 days for changes to reflect on your report"
+    ]
+  },
+  {
+    question: "What is a good credit utilization ratio?",
+    answer: "A credit utilization ratio below 30% is considered good, but below 10% is excellent for your credit score.",
+    additionalInfo: [
+      "Calculate utilization by dividing balance by credit limit",
+      "Both overall and per-card utilization matter",
+      "Pay down balances before statement closing dates for best results"
+    ]
+  },
+  {
+    question: "How long do negative marks stay on my credit report?",
+    answer: "Most negative marks stay on your credit report for 7 years, while bankruptcy can stay for up to 10 years.",
+    additionalInfo: [
+      "Late payments: 7 years from the delinquency date",
+      "Chapter 7 bankruptcy: 10 years from filing date",
+      "Chapter 13 bankruptcy: 7 years from filing date",
+      "Collections: 7 years from the original delinquency date"
+    ]
+  },
+  {
+    question: "How can I quickly improve my credit score?",
+    answer: "The fastest ways to improve your score include paying down balances, becoming an authorized user, and disputing errors.",
+    additionalInfo: [
+      "Pay down cards with highest utilization first",
+      "Ask for credit limit increases (without spending more)",
+      "Use credit-builder loans or secured cards if you have thin credit"
+    ]
+  },
+  {
+    question: "Does checking my credit score lower it?",
+    answer: "Checking your own credit score results in a soft inquiry, which does not affect your score. Only hard inquiries from lenders can cause a small temporary drop.",
+    additionalInfo: [
+      "Soft inquiries: checking your own score, pre-approved offers",
+      "Hard inquiries: loan applications, credit card applications",
+      "Multiple inquiries for the same type of loan within 14-45 days count as one"
+    ]
+  },
+  {
+    question: "What's the difference between FICO and VantageScore?",
+    answer: "FICO and VantageScore are different scoring models. FICO is more widely used by lenders, while VantageScore is often used by free credit monitoring services.",
+    additionalInfo: [
+      "FICO: Used in 90% of lending decisions, scores range 300-850",
+      "VantageScore: Joint venture by three bureaus, scores range 300-850",
+      "Both consider similar factors but weight them differently"
+    ]
+  }
+]);
+
+// Store original FAQs for search functionality
+const [originalFaqs] = useState([...faqs]);
+const [openFaqIndex, setOpenFaqIndex] = useState(0);
+
+const toggleFaq = (index) => {
+  setOpenFaqIndex(openFaqIndex === index ? null : index);
+};
 
   const getScoreColor = (score) => {
     if (score >= 750) return "text-green-600";
@@ -1131,17 +1185,18 @@ const UserDashboard = () => {
   };
 
   const getStatusIcon = (status) => {
-    switch (status) {
-      case "Approved":
-        return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case "Rejected":
-        return <XCircle className="h-4 w-4 text-red-600" />;
-      case "Pending":
-        return <Clock className="h-4 w-4 text-yellow-600" />;
-      default:
-        return <AlertCircle className="h-4 w-4 text-gray-400" />;
-    }
-  };
+  switch (status) {
+    case "Approved":
+      return <CheckCircle className="h-4 w-4 text-green-600" />;
+    case "Rejected":
+      return <XCircle className="h-4 w-4 text-red-600" />;
+    case "Pending":
+    case "Submitted": // Add this line
+      return <Clock className="h-4 w-4 text-yellow-600" />;
+    default:
+      return <AlertCircle className="h-4 w-4 text-gray-400" />;
+  }
+};
 
   const openApplicationModal = (loan) => {
     setSelectedLoan(loan);
@@ -1404,39 +1459,35 @@ const UserDashboard = () => {
           </Card>
 
           <Card className="shadow-card border-l-4 border-l-blue-600 bg-white hover:bg-blue-50 transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-blue-800">
-                Loan Applications
-              </CardTitle>
-              <FileText className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-1">
-                <div className="flex justify-between">
-                  <span className="text-sm text-blue-600">Pending</span>
-                  <span className="text-sm font-medium text-blue-800">
-                    {applications.filter((a) => a.status === "Pending")
-                      .length || pendingLoans}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-blue-600">Approved</span>
-                  <span className="text-sm font-medium text-green-600">
-                    {applications.filter((a) => a.status === "Approved")
-                      .length || approvedLoans}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-blue-600">Rejected</span>
-                  <span className="text-sm font-medium text-red-600">
-                    {applications.filter((a) => a.status === "Rejected")
-                      .length || rejectedLoans}
-                  </span>
-                </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-blue-800">
+              Loan Applications
+            </CardTitle>
+            <FileText className="h-4 w-4 text-blue-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-1">
+              <div className="flex justify-between">
+                <span className="text-sm text-blue-600">Pending</span>
+                <span className="text-sm font-medium text-blue-800">
+                  {applications.filter((a) => a.status === "Pending" || a.status === "Submitted").length}
+                </span>
               </div>
-            </CardContent>
-          </Card>
-
+              <div className="flex justify-between">
+                <span className="text-sm text-blue-600">Approved</span>
+                <span className="text-sm font-medium text-green-600">
+                  {applications.filter((a) => a.status === "Approved").length}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-blue-600">Rejected</span>
+                <span className="text-sm font-medium text-red-600">
+                  {applications.filter((a) => a.status === "Rejected").length}
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
           <Card className="shadow-card border-l-4 border-l-blue-600 bg-white hover:bg-blue-50 transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-blue-800">
@@ -1582,22 +1633,21 @@ const UserDashboard = () => {
             </Card>
           </TabsContent>
           <TabsContent value="status">
-            <Card>
-              <CardHeader>
-                <CardTitle>Loan Status Tracker</CardTitle>
-                <CardDescription>
-                  Track the progress of your loan applications
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {applications.length === 0 && (
-                    <Card className="p-4 border border-blue-100 text-blue-700">
-                      You have not submitted any loan applications yet.
-                    </Card>
-                  )}
-
-                  {applications.map((application) => (
+          <Card>
+            <CardHeader>
+              <CardTitle>Loan Status Tracker</CardTitle>
+              <CardDescription>
+                Track the progress of your loan applications
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {applications.length === 0 ? (
+                  <Card className="p-4 border border-blue-100 text-blue-700">
+                    You have not submitted any loan applications yet.
+                  </Card>
+                ) : (
+                  applications.map((application) => (
                     <Card
                       key={application.id}
                       className="border-l-4 border-l-blue-500 bg-white hover:bg-blue-50 transition-all duration-300 shadow-md hover:shadow-lg"
@@ -1657,22 +1707,21 @@ const UserDashboard = () => {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() =>
-                                  viewApplicationDetails(application)
-                                }
+                                onClick={() => viewApplicationDetails(application)}
                               >
-                                view
+                                View Details
                               </Button>
                             </div>
                           </div>
                         </div>
                       </CardContent>
                     </Card>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
           <TabsContent value="scores">
             <div className="space-y-6">
               <Card>
@@ -1858,39 +1907,166 @@ const UserDashboard = () => {
           </TabsContent>
 
           <TabsContent value="faq">
-            <Card>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* FAQ Section */}
+            <Card className="lg:col-span-2">
               <CardHeader>
                 <CardTitle>Frequently Asked Questions</CardTitle>
                 <CardDescription>
                   Common questions about credit scores and payment history
                 </CardDescription>
+                <div className="pt-4">
+                  <Input
+                    placeholder="Search FAQs..."
+                    className="max-w-sm"
+                    onChange={(e) => {
+                      const searchTerm = e.target.value.toLowerCase();
+                      const filtered = originalFaqs.filter(
+                        (faq) =>
+                          faq.question.toLowerCase().includes(searchTerm) ||
+                          faq.answer.toLowerCase().includes(searchTerm)
+                      );
+                      setFaqs(filtered);
+                    }}
+                  />
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {faqs.map((faq, index) => (
                     <Card
                       key={index}
-                      className="bg-white hover:bg-blue-50 transition-all duration-300 shadow-md hover:shadow-lg border border-blue-200"
+                      className="bg-white transition-all duration-300 border border-blue-200 overflow-hidden"
                     >
-                      <CardContent className="p-4">
-                        <div className="space-y-2">
+                      <CardContent className="p-0">
+                        <div
+                          className="flex justify-between items-center p-4 cursor-pointer hover:bg-blue-50"
+                          onClick={() => toggleFaq(index)}
+                        >
                           <div className="flex items-start space-x-2">
-                            <HelpCircle className="h-5 w-5 text-blue-600 mt-0.5" />
+                            <div className="h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center mt-0.5 flex-shrink-0">
+                              <span className="text-sm font-medium text-blue-700">
+                                {index + 1}
+                              </span>
+                            </div>
                             <h3 className="font-semibold text-blue-800">
                               {faq.question}
                             </h3>
                           </div>
-                          <p className="text-sm text-blue-600 pl-7">
-                            {faq.answer}
-                          </p>
+                          <ChevronDown
+                            className={`h-5 w-5 text-blue-600 transition-transform ${
+                              openFaqIndex === index ? "transform rotate-180" : ""
+                            }`}
+                          />
                         </div>
+                        {openFaqIndex === index && (
+                          <div className="px-4 pb-4 pt-2 border-t border-blue-100">
+                            <p className="text-sm text-blue-600 pl-7">{faq.answer}</p>
+                            {faq.additionalInfo && (
+                              <div className="mt-3 pl-7">
+                                <p className="text-sm font-medium text-blue-800 mb-1">
+                                  Additional Information:
+                                </p>
+                                <ul className="text-sm text-blue-600 list-disc list-inside space-y-1">
+                                  {faq.additionalInfo.map((info, i) => (
+                                    <li key={i}>{info}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   ))}
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
+
+            {/* Improve Your Score Section */}
+            <Card className="bg-gradient-to-b from-blue-50 to-indigo-50 border-blue-200">
+              <CardHeader>
+                <CardTitle className="text-blue-800">Improve Your Score</CardTitle>
+                <CardDescription>
+                  Tips to boost your credit score effectively
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-start space-x-3 p-3 bg-white rounded-lg border border-blue-200">
+                    <div className="bg-green-100 p-2 rounded-full flex-shrink-0">
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-blue-800">
+                        Pay Bills on Time
+                      </h4>
+                      <p className="text-sm text-blue-600 mt-1">
+                        Payment history is the most important factor. Set up automatic payments to never miss a due date.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start space-x-3 p-3 bg-white rounded-lg border border-blue-200">
+                    <div className="bg-blue-100 p-2 rounded-full flex-shrink-0">
+                      <CreditCard className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-blue-800">
+                        Keep Utilization Low
+                      </h4>
+                      <p className="text-sm text-blue-600 mt-1">
+                        Try to use less than 30% of your available credit limit on each card.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start space-x-3 p-3 bg-white rounded-lg border border-blue-200">
+                    <div className="bg-purple-100 p-2 rounded-full flex-shrink-0">
+                      <FileText className="h-5 w-5 text-purple-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-blue-800">
+                        Check Reports Regularly
+                      </h4>
+                      <p className="text-sm text-blue-600 mt-1">
+                        Review your credit reports for errors and dispute any inaccuracies promptly.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start space-x-3 p-3 bg-white rounded-lg border border-blue-200">
+                    <div className="bg-amber-100 p-2 rounded-full flex-shrink-0">
+                      <Shield className="h-5 w-5 text-amber-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-blue-800">
+                        Maintain Old Accounts
+                      </h4>
+                      <p className="text-sm text-blue-600 mt-1">
+                        Longer credit history improves your score. Keep old accounts open even if you don't use them frequently.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start space-x-3 p-3 bg-white rounded-lg border border-blue-200">
+                    <div className="bg-red-100 p-2 rounded-full flex-shrink-0">
+                      <AlertCircle className="h-5 w-5 text-red-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-blue-800">
+                        Limit New Applications
+                      </h4>
+                      <p className="text-sm text-blue-600 mt-1">
+                        Too many hard inquiries in a short period can lower your score. Space out credit applications.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
         </Tabs>
       </div>
       {/* Loan Application Modal */}
