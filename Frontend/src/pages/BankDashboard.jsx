@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { api } from "@/lib/api";
+import { realTimeSync } from "@/lib/realTimeSync";
 import {
   Card,
   CardContent,
@@ -455,6 +457,23 @@ const BankDashboard = () => {
   const [aadhaarInput, setAadhaarInput] = useState("");
   const [showCustomerInfo, setShowCustomerInfo] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [allUsers, setAllUsers] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  // Set up real-time sync for users
+  useEffect(() => {
+    // Subscribe to real-time updates for users
+    const unsubscribeUsers = realTimeSync.subscribe('users', (response) => {
+      if (response.status === "Success") {
+        setAllUsers(response.users);
+      }
+    }, 20000); // Update every 20 seconds
+    
+    // Cleanup subscription on unmount
+    return () => {
+      unsubscribeUsers();
+    };
+  }, []);
   const [showRiskAssessment, setShowRiskAssessment] = useState(false);
   const [loanAmount, setLoanAmount] = useState("50000");
   const [loanTenure, setLoanTenure] = useState("12");
@@ -474,6 +493,8 @@ const BankDashboard = () => {
   });
   const [activeFilter, setActiveFilter] = useState('all');
   
+
+
   // Generate applications with consistent data
   const generateApplications = () => {
     const applicationsData = [
@@ -660,6 +681,37 @@ const BankDashboard = () => {
   };
 
   const [applications, setApplications] = useState(generateApplications());
+
+  // Add real users as new applications
+  useEffect(() => {
+    if (allUsers.length > 0) {
+      const mockApps = generateApplications();
+      const userApplications = allUsers.map((user, index) => {
+        const loanTypes = ['Personal Loan', 'Home Loan', 'Car Loan', 'Business Loan'];
+        const amounts = ['₹3,00,000', '₹5,00,000', '₹8,00,000', '₹12,00,000'];
+        
+        return {
+          id: `LA2024${String(mockApps.length + index + 1).padStart(3, '0')}`,
+          customerName: user.name,
+          loanType: loanTypes[index % loanTypes.length],
+          amount: amounts[index % amounts.length],
+          riskLevel: user.riskLevel,
+          status: 'Pending',
+          appliedDate: new Date().toISOString().split('T')[0],
+          customerEmail: user.email,
+          panNumber: user.pan.replace(/X/g, 'A'),
+          aadhaarNumber: user.aadhaar.replace(/X/g, '1'),
+          phoneNumber: user.phone,
+          address: `${user.city}, India`,
+          dateOfBirth: '1990-01-01',
+          occupation: 'Professional',
+          annualIncome: '₹12,00,000',
+          creditScore: user.creditScore
+        };
+      });
+      setApplications([...mockApps, ...userApplications]);
+    }
+  }, [allUsers]);
   const [rejectingApplication, setRejectingApplication] = useState(null);
   const [reviewingApplication, setReviewingApplication] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -958,21 +1010,41 @@ const BankDashboard = () => {
     setReviewingApplication(null);
   };
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     if (panInput.trim() || aadhaarInput.trim()) {
-      // Find customer by PAN or Aadhaar
-      const customer = applications.find(app => 
-        app.panNumber === panInput.trim() || 
-        app.aadhaarNumber === aadhaarInput.trim()
-      );
-      
-      if (customer) {
-        setSelectedCustomer(customer);
-        setShowCustomerInfo(true);
-      } else {
-        // Show default customer info if not found
+      setLoading(true);
+      try {
+        // Search in real user database
+        const searchQuery = panInput.trim() || aadhaarInput.trim();
+        const response = await api.searchUsers(searchQuery);
+        
+        if (response.status === "Success" && response.users.length > 0) {
+          const foundUser = response.users[0];
+          setSelectedCustomer({
+            customerName: foundUser.name,
+            panNumber: foundUser.pan,
+            aadhaarNumber: foundUser.aadhaar,
+            phoneNumber: foundUser.phone,
+            customerEmail: foundUser.email,
+            address: `${foundUser.city}, India`,
+            occupation: 'Software Engineer',
+            annualIncome: '₹12,00,000',
+            creditScore: foundUser.creditScore,
+            riskLevel: foundUser.riskLevel,
+            status: foundUser.status
+          });
+          setShowCustomerInfo(true);
+        } else {
+          // Show default customer info if not found
+          setSelectedCustomer(null);
+          setShowCustomerInfo(true);
+        }
+      } catch (error) {
+        console.error('Search failed:', error);
         setSelectedCustomer(null);
         setShowCustomerInfo(true);
+      } finally {
+        setLoading(false);
       }
     }
   };
@@ -1206,7 +1278,7 @@ const BankDashboard = () => {
               value="lookup"
               className="data-[state=active]:bg-blue-500 data-[state=active]:text-white rounded-lg transition-all duration-200"
             >
-              Customer Lookup
+              Credit Lookup
             </TabsTrigger>
             <TabsTrigger
               value="applications"
@@ -1259,11 +1331,78 @@ const BankDashboard = () => {
                   <Button 
                     className="w-full bg-blue-500 hover:bg-blue-600 text-white"
                     onClick={handleSearch}
+                    disabled={loading}
                   >
-                    Search
+                    {loading ? 'Searching...' : 'Search'}
                   </Button>
                 </CardContent>
               </Card>
+              {/* Recently Registered Users */}
+              <Card className="bg-white/80 backdrop-blur-sm border border-gray-200 shadow-xl rounded-xl overflow-hidden">
+                <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-100">
+                  <CardTitle>Recently Registered Users</CardTitle>
+                  <CardDescription>
+                    New users available for credit assessment
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-6">
+                  {allUsers.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {allUsers.slice(0, 6).map((user) => (
+                        <div key={user.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow">
+                          <div className="flex items-center space-x-3 mb-3">
+                            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                              {user.name.charAt(0)}
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-800">{user.name}</p>
+                              <p className="text-xs text-gray-500">{user.email}</p>
+                            </div>
+                          </div>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Credit Score:</span>
+                              <span className={`font-bold ${
+                                user.creditScore >= 750 ? 'text-green-600' :
+                                user.creditScore >= 650 ? 'text-yellow-600' : 'text-red-600'
+                              }`}>{user.creditScore}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Risk Level:</span>
+                              <span className={`font-medium ${
+                                user.riskLevel === 'Low' ? 'text-green-600' :
+                                user.riskLevel === 'Medium' ? 'text-yellow-600' : 'text-red-600'
+                              }`}>{user.riskLevel}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Status:</span>
+                              <span className={`font-medium ${
+                                user.status === 'Active' ? 'text-green-600' : 'text-gray-600'
+                              }`}>{user.status}</span>
+                            </div>
+                          </div>
+                          <Button 
+                            size="sm" 
+                            className="w-full mt-3 bg-blue-500 hover:bg-blue-600 text-white"
+                            onClick={() => {
+                              setPanInput(user.pan.replace(/X/g, '').slice(0, 5) + user.pan.slice(-1));
+                              setAadhaarInput('');
+                              handleSearch();
+                            }}
+                          >
+                            View Profile
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-gray-500">No registered users found</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
               {/* Customer Information */}
               {showCustomerInfo && (
                 <Card className="bg-white/80 backdrop-blur-sm border border-gray-200 shadow-xl rounded-xl overflow-hidden">
