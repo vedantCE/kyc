@@ -952,10 +952,10 @@ const UserDashboard = () => {
   // Mock data (same as original)
   const creditScore = 742;
   const riskLevel = "Low";
-  const lastUpdated = "2024-08-08";
-  const pendingLoans = 2;
-  const approvedLoans = 1;
-  const rejectedLoans = 0;
+  const lastUpdated = "2025-08-08";
+  // const pendingLoans = 2;
+  // const approvedLoans = 1;
+  // const rejectedLoans = 0;
 
   const recommendedLoans = [
     {
@@ -992,26 +992,26 @@ const UserDashboard = () => {
     },
   ];
 
-  const loanApplicationsInitial = [
-    {
-      id: "LA001",
-      bank: "HDFC Bank",
-      type: "Personal Loan",
-      amount: "₹3,00,000",
-      status: "Pending",
-      appliedDate: "2024-08-05",
-      expectedDecision: "2024-08-12",
-    },
-    {
-      id: "LA002",
-      bank: "SBI",
-      type: "Credit Card",
-      amount: "₹2,00,000",
-      status: "Approved",
-      appliedDate: "2024-07-28",
-      approvedDate: "2024-08-02",
-    },
-  ];
+  // const loanApplicationsInitial = [
+  //   {
+  //     id: "LA001",
+  //     bank: "HDFC Bank",
+  //     type: "Personal Loan",
+  //     amount: "₹3,00,000",
+  //     status: "Pending",
+  //     appliedDate: "2024-08-05",
+  //     expectedDecision: "2024-08-12",
+  //   },
+  //   {
+  //     id: "LA002",
+  //     bank: "SBI",
+  //     type: "Credit Card",
+  //     amount: "₹2,00,000",
+  //     status: "Approved",
+  //     appliedDate: "2024-07-28",
+  //     approvedDate: "2024-08-02",
+  //   },
+  // ];
 
   // Updated credit history with 4 weeks of data for Vedant Bhatt
   const creditHistory = [
@@ -1404,39 +1404,35 @@ const UserDashboard = () => {
           </Card>
 
           <Card className="shadow-card border-l-4 border-l-blue-600 bg-white hover:bg-blue-50 transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-blue-800">
-                Loan Applications
-              </CardTitle>
-              <FileText className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-1">
-                <div className="flex justify-between">
-                  <span className="text-sm text-blue-600">Pending</span>
-                  <span className="text-sm font-medium text-blue-800">
-                    {applications.filter((a) => a.status === "Pending")
-                      .length || pendingLoans}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-blue-600">Approved</span>
-                  <span className="text-sm font-medium text-green-600">
-                    {applications.filter((a) => a.status === "Approved")
-                      .length || approvedLoans}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-blue-600">Rejected</span>
-                  <span className="text-sm font-medium text-red-600">
-                    {applications.filter((a) => a.status === "Rejected")
-                      .length || rejectedLoans}
-                  </span>
-                </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-blue-800">
+              Loan Applications
+            </CardTitle>
+            <FileText className="h-4 w-4 text-blue-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-1">
+              <div className="flex justify-between">
+                <span className="text-sm text-blue-600">Pending</span>
+                <span className="text-sm font-medium text-blue-800">
+                  {applications.filter((a) => a.status === "Pending" || a.status === "Submitted").length}
+                </span>
               </div>
-            </CardContent>
-          </Card>
-
+              <div className="flex justify-between">
+                <span className="text-sm text-blue-600">Approved</span>
+                <span className="text-sm font-medium text-green-600">
+                  {applications.filter((a) => a.status === "Approved").length}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-blue-600">Rejected</span>
+                <span className="text-sm font-medium text-red-600">
+                  {applications.filter((a) => a.status === "Rejected").length}
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
           <Card className="shadow-card border-l-4 border-l-blue-600 bg-white hover:bg-blue-50 transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-blue-800">
@@ -1582,22 +1578,21 @@ const UserDashboard = () => {
             </Card>
           </TabsContent>
           <TabsContent value="status">
-            <Card>
-              <CardHeader>
-                <CardTitle>Loan Status Tracker</CardTitle>
-                <CardDescription>
-                  Track the progress of your loan applications
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {applications.length === 0 && (
-                    <Card className="p-4 border border-blue-100 text-blue-700">
-                      You have not submitted any loan applications yet.
-                    </Card>
-                  )}
-
-                  {applications.map((application) => (
+          <Card>
+            <CardHeader>
+              <CardTitle>Loan Status Tracker</CardTitle>
+              <CardDescription>
+                Track the progress of your loan applications
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {applications.length === 0 ? (
+                  <Card className="p-4 border border-blue-100 text-blue-700">
+                    You have not submitted any loan applications yet.
+                  </Card>
+                ) : (
+                  applications.map((application) => (
                     <Card
                       key={application.id}
                       className="border-l-4 border-l-blue-500 bg-white hover:bg-blue-50 transition-all duration-300 shadow-md hover:shadow-lg"
@@ -1657,22 +1652,21 @@ const UserDashboard = () => {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() =>
-                                  viewApplicationDetails(application)
-                                }
+                                onClick={() => viewApplicationDetails(application)}
                               >
-                                view
+                                View Details
                               </Button>
                             </div>
                           </div>
                         </div>
                       </CardContent>
                     </Card>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
           <TabsContent value="scores">
             <div className="space-y-6">
               <Card>
