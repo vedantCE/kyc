@@ -858,6 +858,7 @@ const UserDashboard = () => {
   const [applications, setApplications] = useState([]);
   const [activeModal, setActiveModal] = useState(null); // Tracks which improvement modal is open
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("loans");
   const [notifications, setNotifications] = useState([
     {
       id: 1,
@@ -1356,7 +1357,7 @@ const UserDashboard = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Top Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="shadow-card border-l-4 border-l-blue-500 bg-white hover:bg-blue-50 transition-all duration-300 cursor-pointer" onClick={() => document.querySelector('[value="scores"]').click()}>
+          <Card className="shadow-card border-l-4 border-l-blue-500 bg-white hover:bg-blue-50 transition-all duration-300 cursor-pointer" onClick={() => setActiveTab("scores")}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-blue-800">
                 Credit Score
@@ -1453,7 +1454,7 @@ const UserDashboard = () => {
         </div>
 
         {/* Main Content */}
-        <Tabs defaultValue="loans" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-6 rounded-full bg-white p-1 border border-blue-200">
             <TabsTrigger
               value="loans"
