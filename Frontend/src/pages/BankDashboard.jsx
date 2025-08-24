@@ -74,7 +74,7 @@ import AnimatedSpeedometer from "@/components/AnimatedSpeedometer";
 const generateConsistentScores = (id) => {
   const seed = id.toString().split("").reduce((a, c) => a + c.charCodeAt(0), 0);
   const baseScore = 600 + ((seed * 13) % 300);
-  
+
   // Generate consistent bureau scores
   const bureauScores = [
     {
@@ -132,7 +132,7 @@ const ReviewForm = ({ application, onClose, onConfirm }) => {
   if (!application) return null;
 
   const { bureauScores, creditScoreHistory } = generateConsistentScores(application.id);
-  
+
   // Ensure last graph values match gauge values
   const adjustedHistory = creditScoreHistory.map((item, index) => {
     if (index === creditScoreHistory.length - 1) {
@@ -468,7 +468,7 @@ const BankDashboard = () => {
         setAllUsers(response.users);
       }
     }, 20000); // Update every 20 seconds
-    
+
     // Cleanup subscription on unmount
     return () => {
       unsubscribeUsers();
@@ -492,7 +492,7 @@ const BankDashboard = () => {
     timeRange: '24h'
   });
   const [activeFilter, setActiveFilter] = useState('all');
-  
+
 
 
   // Generate applications with consistent data
@@ -689,7 +689,7 @@ const BankDashboard = () => {
       const userApplications = allUsers.map((user, index) => {
         const loanTypes = ['Personal Loan', 'Home Loan', 'Car Loan', 'Business Loan'];
         const amounts = ['₹3,00,000', '₹5,00,000', '₹8,00,000', '₹12,00,000'];
-        
+
         return {
           id: `LA2024${String(mockApps.length + index + 1).padStart(3, '0')}`,
           customerName: user.name,
@@ -774,8 +774,10 @@ const BankDashboard = () => {
     { month: "Nov 2024", cibil: 736, experian: 724, equifax: 708, crif: 744 },
     { month: "Dec 2024", cibil: 744, experian: 731, equifax: 717, crif: 751 },
     { month: "Jan 2025", cibil: 752, experian: 738, equifax: 726, crif: 758 },
-    { month: "Feb 2025", cibil: bureauScores[0].score, experian: bureauScores[2].score, 
-      equifax: bureauScores[1].score, crif: bureauScores[3].score },
+    {
+      month: "Feb 2025", cibil: bureauScores[0].score, experian: bureauScores[2].score,
+      equifax: bureauScores[1].score, crif: bureauScores[3].score
+    },
   ];
 
   const monthlyData = [
@@ -931,14 +933,14 @@ const BankDashboard = () => {
   };
 
   const filteredApplications = applications.filter((app) => {
-    const matchesSearch = 
+    const matchesSearch =
       app.customerName.toLowerCase().includes(searchUser.toLowerCase()) ||
       app.customerEmail.toLowerCase().includes(searchUser.toLowerCase()) ||
       app.id.toLowerCase().includes(searchUser.toLowerCase()) ||
       app.panNumber.toLowerCase().includes(searchUser.toLowerCase()) ||
       app.aadhaarNumber.includes(searchUser);
-    
-    const matchesFilter = 
+
+    const matchesFilter =
       activeFilter === 'all' ||
       (activeFilter === 'high-risk' && app.riskLevel === 'High') ||
       (activeFilter === 'medium-risk' && app.riskLevel === 'Medium') ||
@@ -947,7 +949,7 @@ const BankDashboard = () => {
       (activeFilter === 'under-review' && app.status === 'Under Review') ||
       (activeFilter === 'approved' && app.status === 'Approved') ||
       (activeFilter === 'rejected' && app.status === 'Rejected');
-    
+
     return matchesSearch && matchesFilter;
   });
 
@@ -1017,7 +1019,7 @@ const BankDashboard = () => {
         // Search in real user database
         const searchQuery = panInput.trim() || aadhaarInput.trim();
         const response = await api.searchUsers(searchQuery);
-        
+
         if (response.status === "Success" && response.users.length > 0) {
           const foundUser = response.users[0];
           setSelectedCustomer({
@@ -1135,8 +1137,8 @@ const BankDashboard = () => {
     const analysisText = riskScore >= 60
       ? `This application carries high risk due to ${analysisVariants.slice(0, 2).join(' and ')}. With an EMI of ₹${monthlyEMI.toLocaleString()} against monthly income of ₹${income.toLocaleString()}, repayment could be challenging. Recommend rejection and advise the applicant to improve factors like ${riskFactors[0]?.split(' ')[0].toLowerCase() || 'income stability'}.`
       : riskScore >= 30
-      ? `Moderate risk profile with ${analysisVariants.slice(0, 2).join(' but offset by ')}. The ${emiToIncomeRatio}% DTI is manageable, but additional verification on ${employmentType.toLowerCase()} income is advised. Proceed to manual review for potential approval with conditions.`
-      : `Low-risk application supported by ${analysisVariants.slice(0, 2).join(' and ')}. Strong indicators like stable ${employmentType.toLowerCase()} employment and low DTI of ${emiToIncomeRatio}% suggest reliable repayment. Approve with standard terms.`;
+        ? `Moderate risk profile with ${analysisVariants.slice(0, 2).join(' but offset by ')}. The ${emiToIncomeRatio}% DTI is manageable, but additional verification on ${employmentType.toLowerCase()} income is advised. Proceed to manual review for potential approval with conditions.`
+        : `Low-risk application supported by ${analysisVariants.slice(0, 2).join(' and ')}. Strong indicators like stable ${employmentType.toLowerCase()} employment and low DTI of ${emiToIncomeRatio}% suggest reliable repayment. Approve with standard terms.`;
 
     return {
       recommendation,
@@ -1328,78 +1330,13 @@ const BankDashboard = () => {
                       onChange={(e) => setAadhaarInput(e.target.value)}
                     />
                   </div>
-                  <Button 
+                  <Button
                     className="w-full bg-blue-500 hover:bg-blue-600 text-white"
                     onClick={handleSearch}
                     disabled={loading}
                   >
                     {loading ? 'Searching...' : 'Search'}
                   </Button>
-                </CardContent>
-              </Card>
-              {/* Recently Registered Users */}
-              <Card className="bg-white/80 backdrop-blur-sm border border-gray-200 shadow-xl rounded-xl overflow-hidden">
-                <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-100">
-                  <CardTitle>Recently Registered Users</CardTitle>
-                  <CardDescription>
-                    New users available for credit assessment
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-6">
-                  {allUsers.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {allUsers.slice(0, 6).map((user) => (
-                        <div key={user.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow">
-                          <div className="flex items-center space-x-3 mb-3">
-                            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                              {user.name.charAt(0)}
-                            </div>
-                            <div>
-                              <p className="font-medium text-gray-800">{user.name}</p>
-                              <p className="text-xs text-gray-500">{user.email}</p>
-                            </div>
-                          </div>
-                          <div className="space-y-2 text-sm">
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Credit Score:</span>
-                              <span className={`font-bold ${
-                                user.creditScore >= 750 ? 'text-green-600' :
-                                user.creditScore >= 650 ? 'text-yellow-600' : 'text-red-600'
-                              }`}>{user.creditScore}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Risk Level:</span>
-                              <span className={`font-medium ${
-                                user.riskLevel === 'Low' ? 'text-green-600' :
-                                user.riskLevel === 'Medium' ? 'text-yellow-600' : 'text-red-600'
-                              }`}>{user.riskLevel}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Status:</span>
-                              <span className={`font-medium ${
-                                user.status === 'Active' ? 'text-green-600' : 'text-gray-600'
-                              }`}>{user.status}</span>
-                            </div>
-                          </div>
-                          <Button 
-                            size="sm" 
-                            className="w-full mt-3 bg-blue-500 hover:bg-blue-600 text-white"
-                            onClick={() => {
-                              setPanInput(user.pan.replace(/X/g, '').slice(0, 5) + user.pan.slice(-1));
-                              setAadhaarInput('');
-                              handleSearch();
-                            }}
-                          >
-                            View Profile
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <p className="text-gray-500">No registered users found</p>
-                    </div>
-                  )}
                 </CardContent>
               </Card>
 
@@ -1448,313 +1385,332 @@ const BankDashboard = () => {
                 </Card>
               )}
 
-              {/* Credit Score and Active Loans */}
+              {/* Unified Customer Info Grid (50/50 Layout) */}
               {showCustomerInfo && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Credit Score */}
-                <Card className="bg-white/80 backdrop-blur-sm border border-gray-200 shadow-xl rounded-xl overflow-hidden">
-                  <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-100">
-                    <CardTitle className="flex items-center justify-between">
-                      Credit Score
-                      <TrendingUp className="h-5 w-5 text-blue-600" />
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-6">
-                    <div className="bg-blue-50 p-3 rounded-lg mb-4">
-                      <p className="text-sm text-blue-700">
-                        ℹ️ The displayed score is normalized using Min-max scaling. To get a specialized unified score for your needs, please select a loan type below.
-                      </p>
-                    </div>
-                    <div className="mb-4">
-                      <label className="text-sm font-medium text-gray-700 block mb-2">Loan Type</label>
-                      <select className="w-full p-2 border border-gray-300 rounded-md">
-                        <option>Select loan type</option>
-                        <option>Personal Loan</option>
-                        <option>Home Loan</option>
-                        <option>Car Loan</option>
-                        <option>Business Loan</option>
-                      </select>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-sm text-gray-600 mb-2">Normalized Credit Score</p>
-                      <div className="relative">
-                        <AnimatedSpeedometer 
-                          bureauName="Normalized" 
-                          score={selectedCustomer ? selectedCustomer.creditScore : 770} 
-                          range="300-900" 
-                          peerAverage={78} 
-                          postAverage={78} 
-                          size="large"
-                        />
-                      </div>
-                      <div className="flex items-center justify-center mt-4">
-                        <div className={`flex items-center px-3 py-1 rounded-full ${
-                          selectedCustomer 
-                            ? selectedCustomer.creditScore >= 750 
-                              ? 'bg-green-100' 
-                              : selectedCustomer.creditScore >= 650 
-                              ? 'bg-yellow-100' 
-                              : 'bg-red-100'
-                            : 'bg-green-100'
-                        }`}>
-                          <CheckCircle className={`h-4 w-4 mr-1 ${
-                            selectedCustomer 
-                              ? selectedCustomer.creditScore >= 750 
-                                ? 'text-green-600' 
-                                : selectedCustomer.creditScore >= 650 
-                                ? 'text-yellow-600' 
-                                : 'text-red-600'
-                              : 'text-green-600'
-                          }`} />
-                          <span className={`text-sm font-medium ${
-                            selectedCustomer 
-                              ? selectedCustomer.creditScore >= 750 
-                                ? 'text-green-700' 
-                                : selectedCustomer.creditScore >= 650 
-                                ? 'text-yellow-700' 
-                                : 'text-red-700'
-                              : 'text-green-700'
-                          }`}>
-                            {selectedCustomer 
-                              ? selectedCustomer.creditScore >= 750 
-                                ? 'Low Risk' 
-                                : selectedCustomer.creditScore >= 650 
-                                ? 'Medium Risk' 
-                                : 'High Risk'
-                              : 'Low Risk'
-                            }
-                          </span>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch h-full">
+
+                  {/* LEFT COLUMN (Credit Score full height) */}
+                  <div className="flex flex-col h-full">
+                    <Card className="bg-white/80 backdrop-blur-sm border border-gray-200 shadow-xl rounded-xl overflow-hidden h-full flex flex-col">
+                      {/* Credit Score Header */}
+                      <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-100">
+                        <CardTitle className="flex items-center justify-between">
+                          Credit Score
+                          <TrendingUp className="h-5 w-5 text-blue-600" />
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-6 flex-1 flex flex-col justify-between">
+                        {/* --- Credit Score Content --- */}
+                        <div className="bg-blue-50 p-3 rounded-lg mb-4">
+                          <p className="text-sm text-blue-700">
+                            ℹ️ The displayed score is normalized using Min-max scaling. To get a specialized unified score for your needs, please select a loan type below.
+                          </p>
                         </div>
-                      </div>
-                      <p className="text-xs text-gray-500 mt-2">Last updated on Feb 2025</p>
-                    </div>
-                  </CardContent>
-                </Card>
-                {/* Active Loans */}
-                <Card className="bg-white/80 backdrop-blur-sm border border-gray-200 shadow-xl rounded-xl overflow-hidden">
-                  <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-100">
-                    <CardTitle className="flex items-center justify-between">
-                      Active Loans
-                      <FileText className="h-5 w-5 text-blue-600" />
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-6">
-                    <div className="space-y-4">
-                      <div className="text-center">
-                        <span className="text-4xl font-bold text-gray-800">1</span>
-                        <p className="text-sm text-gray-600">Total outstanding ₹54,726</p>
-                      </div>
-                      <div className="space-y-3">
-                        <h4 className="font-medium text-gray-800">Active Loans</h4>
-                        <div className="border rounded-lg p-4">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="font-semibold text-gray-800">Auto Loan</p>
-                              <p className="text-sm text-gray-600">CitiBank</p>
+                        <div className="mb-4">
+                          <label className="text-sm font-medium text-gray-700 block mb-2">Loan Type</label>
+                          <select className="w-full p-2 border border-gray-300 rounded-md">
+                            <option>Select loan type</option>
+                            <option>Personal Loan</option>
+                            <option>Home Loan</option>
+                            <option>Car Loan</option>
+                            <option>Business Loan</option>
+                          </select>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-sm text-gray-600 mb-2">Normalized Credit Score</p>
+                          <div className="relative">
+                            <AnimatedSpeedometer
+                              bureauName="Normalized"
+                              score={selectedCustomer ? selectedCustomer.creditScore : 770}
+                              range="300-900"
+                              peerAverage={78}
+                              postAverage={78}
+                              size="large"
+                            />
+                          </div>
+                          <div className="flex items-center justify-center mt-4">
+                            <div
+                              className={`flex items-center px-3 py-1 rounded-full ${selectedCustomer
+                                  ? selectedCustomer.creditScore >= 750
+                                    ? "bg-green-100"
+                                    : selectedCustomer.creditScore >= 650
+                                      ? "bg-yellow-100"
+                                      : "bg-red-100"
+                                  : "bg-green-100"
+                                }`}
+                            >
+                              <CheckCircle
+                                className={`h-4 w-4 mr-1 ${selectedCustomer
+                                    ? selectedCustomer.creditScore >= 750
+                                      ? "text-green-600"
+                                      : selectedCustomer.creditScore >= 650
+                                        ? "text-yellow-600"
+                                        : "text-red-600"
+                                    : "text-green-600"
+                                  }`}
+                              />
+                              <span
+                                className={`text-sm font-medium ${selectedCustomer
+                                    ? selectedCustomer.creditScore >= 750
+                                      ? "text-green-700"
+                                      : selectedCustomer.creditScore >= 650
+                                        ? "text-yellow-700"
+                                        : "text-red-700"
+                                    : "text-green-700"
+                                  }`}
+                              >
+                                {selectedCustomer
+                                  ? selectedCustomer.creditScore >= 750
+                                    ? "Low Risk"
+                                    : selectedCustomer.creditScore >= 650
+                                      ? "Medium Risk"
+                                      : "High Risk"
+                                  : "Low Risk"}
+                              </span>
                             </div>
-                            <div className="text-right">
-                              <p className="font-bold text-gray-800">₹54,726</p>
-                              <p className="text-sm text-gray-600">EMI: ₹1,244</p>
+                          </div>
+                          <p className="text-xs text-gray-500 mt-2">
+                            Last updated on Feb 2025
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* RIGHT COLUMN (Cards shrink to content) */}
+                  <div className="flex flex-col h-full space-y-6">
+
+                    {/* Active Loans */}
+                    <Card className="bg-white/80 backdrop-blur-sm border border-gray-200 shadow-xl rounded-xl overflow-hidden">
+                      <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-100">
+                        <CardTitle className="flex items-center justify-between">
+                          Active Loans
+                          <FileText className="h-5 w-5 text-blue-600" />
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-6">
+                        <div className="space-y-4">
+                          <div className="text-center">
+                            <span className="text-4xl font-bold text-gray-800">1</span>
+                            <p className="text-sm text-gray-600">
+                              Total outstanding ₹54,726
+                            </p>
+                          </div>
+                          <div className="space-y-3">
+                            <h4 className="font-medium text-gray-800">Active Loans</h4>
+                            <div className="border rounded-lg p-4">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <p className="font-semibold text-gray-800">Auto Loan</p>
+                                  <p className="text-sm text-gray-600">CitiBank</p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="font-bold text-gray-800">₹54,726</p>
+                                  <p className="text-sm text-gray-600">EMI: ₹1,244</p>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+                      </CardContent>
+                    </Card>
 
+                    {/* Credit Account Age */}
+                    <Card className="bg-white/80 backdrop-blur-sm border border-gray-200 shadow-xl rounded-xl overflow-hidden">
+                      <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-100">
+                        <CardTitle>Credit Account Age</CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-6">
+                        <div className="space-y-4">
+                          <div>
+                            <span className="text-3xl font-bold text-gray-800">14</span>
+                            <span className="text-lg text-gray-600 ml-2">months</span>
+                          </div>
+                          <p className="text-sm text-gray-600">Oldest account: Mortgage</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Payment History */}
+                    <Card className="bg-white/80 backdrop-blur-sm border border-gray-200 shadow-xl rounded-xl overflow-hidden">
+                      <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-100">
+                        <CardTitle>Payment History</CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-6">
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <span className="text-3xl font-bold text-green-600">57</span>
+                              <p className="text-sm text-gray-600">On-time payments</p>
+                            </div>
+                            <div>
+                              <span className="text-3xl font-bold text-red-600">1</span>
+                              <p className="text-sm text-gray-600">
+                                Missed installments across all loans
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Payment History Bar */}
+                          <div className="space-y-2">
+                            <div className="flex justify-between">
+                              <span className="text-sm text-gray-600">Payment History</span>
+                              <span className="text-sm font-semibold">98% On-time</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div className="bg-green-500 h-2 rounded-full" style={{ width: "98%" }}></div>
+                            </div>
+                          </div>
+
+                          {/* Credit Utilization Bar */}
+                          <div className="space-y-2">
+                            <div className="flex justify-between">
+                              <span className="text-sm text-gray-600">Credit Utilization</span>
+                              <span className="text-sm font-semibold">15%</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div className="bg-green-500 h-2 rounded-full" style={{ width: "15%" }}></div>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
               )}
 
-              {/* Payment History and Credit Details */}
-              {showCustomerInfo && (
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                {/* Payment History */}
-                <Card className="bg-white/80 backdrop-blur-sm border border-gray-200 shadow-xl rounded-xl overflow-hidden lg:col-span-2">
-                  <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-100">
-                    <CardTitle>Payment History</CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-6">
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <span className="text-3xl font-bold text-green-600">57</span>
-                          <p className="text-sm text-gray-600">On-time payments</p>
-                        </div>
-                        <div>
-                          <span className="text-3xl font-bold text-red-600">1</span>
-                          <p className="text-sm text-gray-600">Missed installments across all loans</p>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <span className="text-sm text-gray-600">Payment History</span>
-                          <span className="text-sm font-semibold">1900% On-time</span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div className="bg-green-500 h-2 rounded-full" style={{width: '98%'}}></div>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <span className="text-sm text-gray-600">Credit Utilization</span>
-                          <span className="text-sm font-semibold">15%</span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div className="bg-green-500 h-2 rounded-full" style={{width: '15%'}}></div>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
 
-                {/* Credit Account Age */}
-                <Card className="bg-white/80 backdrop-blur-sm border border-gray-200 shadow-xl rounded-xl overflow-hidden lg:col-span-2">
-                  <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-100">
-                    <CardTitle>Credit Account Age</CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-6">
-                    <div className="space-y-4">
-                      <div>
-                        <span className="text-3xl font-bold text-gray-800">14</span>
-                        <span className="text-lg text-gray-600 ml-2">months</span>
-                      </div>
-                      <p className="text-sm text-gray-600">Oldest account: Mortgage</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-              )}
+
               {/* Loan Risk Assessment */}
               {showCustomerInfo && (
-              <Card className="bg-white/80 backdrop-blur-sm border border-gray-200 shadow-xl rounded-xl overflow-hidden">
-                <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-100">
-                  <CardTitle>Loan Risk Assessment</CardTitle>
-                  <CardDescription>
-                    Enter loan request details to get an AI-powered risk assessment
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="text-sm font-medium text-gray-700 block mb-2">Loan Amount (₹)</label>
-                      <Input
-                        value={loanAmount}
-                        onChange={(e) => setLoanAmount(e.target.value)}
+                <Card className="bg-white/80 backdrop-blur-sm border border-gray-200 shadow-xl rounded-xl overflow-hidden">
+                  <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-100">
+                    <CardTitle>Loan Risk Assessment</CardTitle>
+                    <CardDescription>
+                      Enter loan request details to get an AI-powered risk assessment
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="text-sm font-medium text-gray-700 block mb-2">Loan Amount (₹)</label>
+                        <Input
+                          value={loanAmount}
+                          onChange={(e) => setLoanAmount(e.target.value)}
+                          className="border-gray-300 focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-700 block mb-2">Loan Tenure (months)</label>
+                        <Input
+                          value={loanTenure}
+                          onChange={(e) => setLoanTenure(e.target.value)}
+                          className="border-gray-300 focus:border-blue-500"
+                        />
+                      </div>
+                    </div>
+                    <div className="mb-4">
+                      <label className="text-sm font-medium text-gray-700 block mb-2">Loan Purpose</label>
+                      <Textarea
+                        value={loanPurpose}
+                        onChange={(e) => setLoanPurpose(e.target.value)}
                         className="border-gray-300 focus:border-blue-500"
+                        rows={3}
                       />
                     </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-700 block mb-2">Loan Tenure (months)</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="text-sm font-medium text-gray-700 block mb-2">Monthly Income (₹)</label>
+                        <Input
+                          value={monthlyIncome}
+                          onChange={(e) => setMonthlyIncome(e.target.value)}
+                          className="border-gray-300 focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-700 block mb-2">Employment Type</label>
+                        <select
+                          value={employmentType}
+                          onChange={(e) => setEmploymentType(e.target.value)}
+                          className="w-full p-2 border border-gray-300 rounded-md focus:border-blue-500"
+                        >
+                          <option>Salaried</option>
+                          <option>Self-Employed</option>
+                          <option>Business Owner</option>
+                          <option>Freelancer</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="mb-6">
+                      <label className="text-sm font-medium text-gray-700 block mb-2">Employment Tenure (years)</label>
                       <Input
-                        value={loanTenure}
-                        onChange={(e) => setLoanTenure(e.target.value)}
-                        className="border-gray-300 focus:border-blue-500"
+                        value={employmentTenure}
+                        onChange={(e) => setEmploymentTenure(e.target.value)}
+                        className="border-gray-300 focus:border-blue-500 w-full md:w-1/2"
                       />
                     </div>
-                  </div>
-                  <div className="mb-4">
-                    <label className="text-sm font-medium text-gray-700 block mb-2">Loan Purpose</label>
-                    <Textarea
-                      value={loanPurpose}
-                      onChange={(e) => setLoanPurpose(e.target.value)}
-                      className="border-gray-300 focus:border-blue-500"
-                      rows={3}
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="text-sm font-medium text-gray-700 block mb-2">Monthly Income (₹)</label>
-                      <Input
-                        value={monthlyIncome}
-                        onChange={(e) => setMonthlyIncome(e.target.value)}
-                        className="border-gray-300 focus:border-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-700 block mb-2">Employment Type</label>
-                      <select 
-                        value={employmentType}
-                        onChange={(e) => setEmploymentType(e.target.value)}
-                        className="w-full p-2 border border-gray-300 rounded-md focus:border-blue-500"
-                      >
-                        <option>Salaried</option>
-                        <option>Self-Employed</option>
-                        <option>Business Owner</option>
-                        <option>Freelancer</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div className="mb-6">
-                    <label className="text-sm font-medium text-gray-700 block mb-2">Employment Tenure (years)</label>
-                    <Input
-                      value={employmentTenure}
-                      onChange={(e) => setEmploymentTenure(e.target.value)}
-                      className="border-gray-300 focus:border-blue-500 w-full md:w-1/2"
-                    />
-                  </div>
-                  <Button 
-                    className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3"
-                    onClick={handleAssessRisk}
-                  >
-                    Assess Risk →
-                  </Button>
-                </CardContent>
-              </Card>
+                    <Button
+                      className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3"
+                      onClick={handleAssessRisk}
+                    >
+                      Assess Risk →
+                    </Button>
+                  </CardContent>
+                </Card>
               )}
               {/* Risk Assessment Result */}
               {showRiskAssessment && riskAssessment && (
-              <Card className="bg-white/80 backdrop-blur-sm border border-gray-200 shadow-xl rounded-xl overflow-hidden">
-                <CardHeader className="bg-gradient-to-r from-gray-50 to-red-50 border-b border-gray-100">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                      <CardTitle>Risk Assessment Result</CardTitle>
-                    </div>
-                    <Badge className={`bg-${riskAssessment.recommendationColor}-100 text-${riskAssessment.recommendationColor}-700 border-${riskAssessment.recommendationColor}-200`}>
-                      {riskAssessment.recommendation}
-                    </Badge>
-                  </div>
-                  <CardDescription>
-                    AI-powered analysis of the loan application
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="space-y-6">
-                    {/* Analysis Summary */}
-                    <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
-                      <div className="flex items-center gap-2 mb-2">
-                        <FileText className="h-5 w-5 text-blue-600" />
-                        <h3 className="font-semibold text-blue-800">Analysis Summary</h3>
+                <Card className="bg-white/80 backdrop-blur-sm border border-gray-200 shadow-xl rounded-xl overflow-hidden">
+                  <CardHeader className="bg-gradient-to-r from-gray-50 to-red-50 border-b border-gray-100">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                        <CardTitle>Risk Assessment Result</CardTitle>
                       </div>
-                      <p className="text-sm text-blue-700">{riskAssessment.analysisText}</p>
+                      <Badge className={`bg-${riskAssessment.recommendationColor}-100 text-${riskAssessment.recommendationColor}-700 border-${riskAssessment.recommendationColor}-200`}>
+                        {riskAssessment.recommendation}
+                      </Badge>
                     </div>
+                    <CardDescription>
+                      AI-powered analysis of the loan application
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="space-y-6">
+                      {/* Analysis Summary */}
+                      <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
+                        <div className="flex items-center gap-2 mb-2">
+                          <FileText className="h-5 w-5 text-blue-600" />
+                          <h3 className="font-semibold text-blue-800">Analysis Summary</h3>
+                        </div>
+                        <p className="text-sm text-blue-700">{riskAssessment.analysisText}</p>
+                      </div>
 
-                    {/* Risk Factors */}
-                    <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded">
-                      <div className="flex items-center gap-2 mb-3">
-                        <AlertCircle className="h-5 w-5 text-red-600" />
-                        <h3 className="font-semibold text-red-800">Risk Factors</h3>
+                      {/* Risk Factors */}
+                      <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded">
+                        <div className="flex items-center gap-2 mb-3">
+                          <AlertCircle className="h-5 w-5 text-red-600" />
+                          <h3 className="font-semibold text-red-800">Risk Factors</h3>
+                        </div>
+                        <div className="space-y-2">
+                          {riskAssessment.riskFactors.map((factor, index) => (
+                            <div key={index} className="flex items-start gap-2">
+                              <AlertCircle className="h-4 w-4 text-red-600 mt-0.5" />
+                              <p className="text-sm text-red-700">{factor}</p>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                      <div className="space-y-2">
-                        {riskAssessment.riskFactors.map((factor, index) => (
-                          <div key={index} className="flex items-start gap-2">
-                            <AlertCircle className="h-4 w-4 text-red-600 mt-0.5" />
-                            <p className="text-sm text-red-700">{factor}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
 
-                    {/* Disclaimer */}
-                    <div className="bg-blue-50 p-3 rounded">
-                      <p className="text-xs text-blue-600">
-                        This assessment is based on the provided information and credit history. Final lending decisions may require additional verification.
-                      </p>
+                      {/* Disclaimer */}
+                      <div className="bg-blue-50 p-3 rounded">
+                        <p className="text-xs text-blue-600">
+                          This assessment is based on the provided information and credit history. Final lending decisions may require additional verification.
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
               )}
             </div>
           </TabsContent>
@@ -1783,7 +1739,7 @@ const BankDashboard = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Filter Buttons */}
                 <div className="flex flex-wrap gap-2 px-6 pb-4">
                   <Button
@@ -1975,7 +1931,7 @@ const BankDashboard = () => {
               {/* Score Consistency Checker & Decision Metrics */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Score Variance */}
-                <Card className="bg-white border border-gray-200 shadow-sm">-gray-200 shadow-sm">
+                <Card className="bg-white border border-gray-200 shadow-sm">
                   <CardHeader className="pb-4">
                     <CardTitle className="flex items-center gap-2 text-gray-800">
                       <BarChart3 className="h-5 w-5 text-orange-600" />
@@ -1986,11 +1942,10 @@ const BankDashboard = () => {
                   <CardContent>
                     <div className="space-y-3">
                       {scoreVarianceData.map((item) => (
-                        <div key={item.applicantId} className={`rounded-lg p-3 border ${
-                          flaggedApplications.includes(item.applicantId) 
-                            ? 'bg-red-50 border-red-200' 
-                            : 'bg-gray-50 border-gray-100'
-                        }`}>
+                        <div key={item.applicantId} className={`rounded-lg p-3 border ${flaggedApplications.includes(item.applicantId)
+                          ? 'bg-red-50 border-red-200'
+                          : 'bg-gray-50 border-gray-100'
+                          }`}>
                           <div className="flex items-center justify-between mb-2">
                             <div>
                               <span className="font-medium text-gray-800">{item.name}</span>
@@ -2042,7 +1997,7 @@ const BankDashboard = () => {
                           <div className="text-sm text-blue-700">Average Decision Time</div>
                         </div>
                       </div>
-                      
+
                       <div className="space-y-3">
                         <h4 className="font-medium text-gray-800">Approval Rate by Risk Band</h4>
                         <div className="space-y-2">
@@ -2050,7 +2005,7 @@ const BankDashboard = () => {
                             <span className="text-sm text-gray-600">Low Risk</span>
                             <div className="flex items-center gap-2">
                               <div className="w-20 bg-gray-200 rounded-full h-2">
-                                <div className="bg-green-500 h-2 rounded-full" style={{width: `${decisionMetrics.approvalRateByRisk.low}%`}}></div>
+                                <div className="bg-green-500 h-2 rounded-full" style={{ width: `${decisionMetrics.approvalRateByRisk.low}%` }}></div>
                               </div>
                               <span className="text-sm font-medium">{decisionMetrics.approvalRateByRisk.low}%</span>
                             </div>
@@ -2059,7 +2014,7 @@ const BankDashboard = () => {
                             <span className="text-sm text-gray-600">Medium Risk</span>
                             <div className="flex items-center gap-2">
                               <div className="w-20 bg-gray-200 rounded-full h-2">
-                                <div className="bg-yellow-500 h-2 rounded-full" style={{width: `${decisionMetrics.approvalRateByRisk.medium}%`}}></div>
+                                <div className="bg-yellow-500 h-2 rounded-full" style={{ width: `${decisionMetrics.approvalRateByRisk.medium}%` }}></div>
                               </div>
                               <span className="text-sm font-medium">{decisionMetrics.approvalRateByRisk.medium}%</span>
                             </div>
@@ -2068,7 +2023,7 @@ const BankDashboard = () => {
                             <span className="text-sm text-gray-600">High Risk</span>
                             <div className="flex items-center gap-2">
                               <div className="w-20 bg-gray-200 rounded-full h-2">
-                                <div className="bg-red-500 h-2 rounded-full" style={{width: `${decisionMetrics.approvalRateByRisk.high}%`}}></div>
+                                <div className="bg-red-500 h-2 rounded-full" style={{ width: `${decisionMetrics.approvalRateByRisk.high}%` }}></div>
                               </div>
                               <span className="text-sm font-medium">{decisionMetrics.approvalRateByRisk.high}%</span>
                             </div>
@@ -2131,25 +2086,23 @@ const BankDashboard = () => {
                   <CardContent>
                     <div className="space-y-3">
                       {recommendations.map((rec) => (
-                        <div key={rec.id} className={`rounded-lg p-3 border ${
-                          rec.priority === 'high' ? 'bg-red-50 border-red-200' : 
-                          rec.priority === 'medium' ? 'bg-yellow-50 border-yellow-200' : 
-                          'bg-blue-50 border-blue-200'
-                        }`}>
+                        <div key={rec.id} className={`rounded-lg p-3 border ${rec.priority === 'high' ? 'bg-red-50 border-red-200' :
+                          rec.priority === 'medium' ? 'bg-yellow-50 border-yellow-200' :
+                            'bg-blue-50 border-blue-200'
+                          }`}>
                           <div className="flex items-start justify-between mb-2">
                             <h4 className="font-medium text-gray-800">{rec.title}</h4>
-                            <Badge className={`${
-                              rec.priority === 'high' ? 'bg-red-100 text-red-700' : 
-                              rec.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' : 
-                              'bg-blue-100 text-blue-700'
-                            }`}>
+                            <Badge className={`${rec.priority === 'high' ? 'bg-red-100 text-red-700' :
+                              rec.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                                'bg-blue-100 text-blue-700'
+                              }`}>
                               {rec.priority}
                             </Badge>
                           </div>
                           <p className="text-sm text-gray-600 mb-3">{rec.description}</p>
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
+                          <Button
+                            size="sm"
+                            variant="outline"
                             className="text-xs"
                             onClick={() => {
                               if (rec.action === 'Review Criteria') handleReviewCriteria();
@@ -2281,9 +2234,9 @@ const BankDashboard = () => {
             <div className="space-y-4">
               <div>
                 <label className="text-sm font-medium block mb-2">Alert Type</label>
-                <select 
+                <select
                   value={filterSettings.alertType}
-                  onChange={(e) => setFilterSettings(prev => ({...prev, alertType: e.target.value}))}
+                  onChange={(e) => setFilterSettings(prev => ({ ...prev, alertType: e.target.value }))}
                   className="w-full p-2 border border-gray-300 rounded-md"
                 >
                   <option value="all">All Types</option>
@@ -2294,9 +2247,9 @@ const BankDashboard = () => {
               </div>
               <div>
                 <label className="text-sm font-medium block mb-2">Severity</label>
-                <select 
+                <select
                   value={filterSettings.severity}
-                  onChange={(e) => setFilterSettings(prev => ({...prev, severity: e.target.value}))}
+                  onChange={(e) => setFilterSettings(prev => ({ ...prev, severity: e.target.value }))}
                   className="w-full p-2 border border-gray-300 rounded-md"
                 >
                   <option value="all">All Severities</option>
@@ -2307,9 +2260,9 @@ const BankDashboard = () => {
               </div>
               <div>
                 <label className="text-sm font-medium block mb-2">Time Range</label>
-                <select 
+                <select
                   value={filterSettings.timeRange}
-                  onChange={(e) => setFilterSettings(prev => ({...prev, timeRange: e.target.value}))}
+                  onChange={(e) => setFilterSettings(prev => ({ ...prev, timeRange: e.target.value }))}
                   className="w-full p-2 border border-gray-300 rounded-md"
                 >
                   <option value="1h">Last Hour</option>
@@ -2362,7 +2315,7 @@ const BankDashboard = () => {
               <div className="bg-green-50 p-4 rounded-lg border border-green-200">
                 <h4 className="font-medium text-green-800 mb-2">Recommended Adjustments</h4>
                 <ul className="text-sm text-green-700 space-y-1">
-                  <li>• Increase DTI ratio limit to 45% for applicants with credit score > 700</li>
+                  <li>• Increase DTI ratio limit to 45% for applicants with credit score `{'>'}` 700</li>
                   <li>• Reduce minimum employment tenure to 9 months for salaried employees</li>
                   <li>• Consider bureau score averaging for high-variance cases</li>
                 </ul>
@@ -2421,7 +2374,7 @@ const BankDashboard = () => {
                 </div>
                 <div className="flex items-center space-x-2">
                   <input type="checkbox" defaultChecked />
-                  <label className="text-sm">Send alerts for bureau downtimes > 5 minutes</label>
+                  <label className="text-sm">Send alerts for bureau downtimes `{'>'}` 5 minutes</label>
                 </div>
               </div>
             </div>
