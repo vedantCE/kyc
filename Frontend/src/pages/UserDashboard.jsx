@@ -1131,17 +1131,18 @@ const UserDashboard = () => {
   };
 
   const getStatusIcon = (status) => {
-    switch (status) {
-      case "Approved":
-        return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case "Rejected":
-        return <XCircle className="h-4 w-4 text-red-600" />;
-      case "Pending":
-        return <Clock className="h-4 w-4 text-yellow-600" />;
-      default:
-        return <AlertCircle className="h-4 w-4 text-gray-400" />;
-    }
-  };
+  switch (status) {
+    case "Approved":
+      return <CheckCircle className="h-4 w-4 text-green-600" />;
+    case "Rejected":
+      return <XCircle className="h-4 w-4 text-red-600" />;
+    case "Pending":
+    case "Submitted": // Add this line
+      return <Clock className="h-4 w-4 text-yellow-600" />;
+    default:
+      return <AlertCircle className="h-4 w-4 text-gray-400" />;
+  }
+};
 
   const openApplicationModal = (loan) => {
     setSelectedLoan(loan);
