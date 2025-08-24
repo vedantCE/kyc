@@ -18,6 +18,12 @@ const SignUp = () => {
   const [formData, setFormData] = useState({
     username: "",
     panNumber: "",
+    aadhaarNumber: "",
+    phoneNumber: "",
+    address: "",
+    dateOfBirth: "",
+    occupation: "",
+    annualIncome: "",
     firstName: "",
     lastName: "",
     email: "",
@@ -97,6 +103,12 @@ const SignUp = () => {
         firstName: formData.firstName,
         lastName: formData.lastName,
         panNumber: formData.panNumber,
+        aadhaarNumber: formData.aadhaarNumber,
+        phoneNumber: formData.phoneNumber,
+        address: formData.address,
+        dateOfBirth: formData.dateOfBirth,
+        occupation: formData.occupation,
+        annualIncome: formData.annualIncome,
         email: formData.email,
         password: formData.password,
         role: formData.role
@@ -268,21 +280,105 @@ const SignUp = () => {
                 />
               </div>
 
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="panNumber" className="text-gray-700 font-medium">PAN Number</Label>
+                  <Input
+                    id="panNumber"
+                    placeholder="e.g. ABCDE1234F"
+                    value={formData.panNumber}
+                    onChange={(e) =>
+                      handleInputChange("panNumber", e.target.value.toUpperCase())
+                    }
+                    className="bg-white/80 backdrop-blur-sm border-gray-200 focus:border-blue-400 uppercase"
+                    maxLength={10}
+                    pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}"
+                    title="Please enter a valid PAN number (e.g. ABCDE1234F)"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="aadhaarNumber" className="text-gray-700 font-medium">Aadhaar Number</Label>
+                  <Input
+                    id="aadhaarNumber"
+                    placeholder="e.g. 123456789012"
+                    value={formData.aadhaarNumber}
+                    onChange={(e) =>
+                      handleInputChange("aadhaarNumber", e.target.value.replace(/\D/g, ''))
+                    }
+                    className="bg-white/80 backdrop-blur-sm border-gray-200 focus:border-blue-400"
+                    maxLength={12}
+                    pattern="[0-9]{12}"
+                    title="Please enter a valid 12-digit Aadhaar number"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="phoneNumber" className="text-gray-700 font-medium">Phone Number</Label>
+                  <Input
+                    id="phoneNumber"
+                    placeholder="e.g. +91 9876543210"
+                    value={formData.phoneNumber}
+                    onChange={(e) =>
+                      handleInputChange("phoneNumber", e.target.value)
+                    }
+                    className="bg-white/80 backdrop-blur-sm border-gray-200 focus:border-blue-400"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="dateOfBirth" className="text-gray-700 font-medium">Date of Birth</Label>
+                  <Input
+                    id="dateOfBirth"
+                    type="date"
+                    value={formData.dateOfBirth}
+                    onChange={(e) =>
+                      handleInputChange("dateOfBirth", e.target.value)
+                    }
+                    className="bg-white/80 backdrop-blur-sm border-gray-200 focus:border-blue-400"
+                  />
+                </div>
+              </div>
+
               <div className="space-y-2">
-                <Label htmlFor="panNumber" className="text-gray-700 font-medium">PAN Number</Label>
+                <Label htmlFor="address" className="text-gray-700 font-medium">Address</Label>
                 <Input
-                  id="panNumber"
-                  placeholder="e.g. ABCDE1234F"
-                  value={formData.panNumber}
+                  id="address"
+                  placeholder="Enter your full address"
+                  value={formData.address}
                   onChange={(e) =>
-                    handleInputChange("panNumber", e.target.value.toUpperCase())
+                    handleInputChange("address", e.target.value)
                   }
-                  className="bg-white/80 backdrop-blur-sm border-gray-200 focus:border-blue-400 uppercase"
-                  maxLength={10}
-                  pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}"
-                  title="Please enter a valid PAN number (e.g. ABCDE1234F)"
-                  required
+                  className="bg-white/80 backdrop-blur-sm border-gray-200 focus:border-blue-400"
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="occupation" className="text-gray-700 font-medium">Occupation</Label>
+                  <Input
+                    id="occupation"
+                    placeholder="e.g. Software Engineer"
+                    value={formData.occupation}
+                    onChange={(e) =>
+                      handleInputChange("occupation", e.target.value)
+                    }
+                    className="bg-white/80 backdrop-blur-sm border-gray-200 focus:border-blue-400"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="annualIncome" className="text-gray-700 font-medium">Annual Income</Label>
+                  <Input
+                    id="annualIncome"
+                    placeholder="e.g. ₹12,00,000"
+                    value={formData.annualIncome}
+                    onChange={(e) =>
+                      handleInputChange("annualIncome", e.target.value)
+                    }
+                    className="bg-white/80 backdrop-blur-sm border-gray-200 focus:border-blue-400"
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">
